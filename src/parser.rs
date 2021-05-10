@@ -12,12 +12,12 @@ pub enum Response {
     Notify {
         token: Option<Token>,
         message: String,
-        payload: Value,
+        payload: Dict,
     },
     Result {
         token: Option<Token>,
         message: String,
-        payload: Option<Value>,
+        payload: Option<Dict>,
     },
     Console(String),
     Log(String),
@@ -31,9 +31,12 @@ pub enum Response {
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum Value {
     String(String),
-    List(Vec<Value>),
-    Dict(HashMap<String, Value>),
+    List(List),
+    Dict(Dict),
 }
+
+pub type Dict = HashMap<String, Value>;
+pub type List = Vec<Value>;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct Token(pub u32);
@@ -163,7 +166,7 @@ const STRING_START: u8 = b'"';
 const VALUE_SEP: u8 = b',';
 const VALUE_STARTS: [u8; 3] = [DICT_START, ARRAY_START, STRING_START];
 
-fn get_notify_msg_and_payload(stream: &mut StringStream) -> Result<(Option<Token>, String, Value)> {
+fn get_notify_msg_and_payload(stream: &mut StringStream) -> Result<(Option<Token>, String, Dict)> {
     let token = stream.advance_past_chars(&['=', '*']);
     let token = parse_token_maybe_empty(token)?;
     let message = stream.advance_past_chars(&[',']).trim().to_owned();
@@ -174,7 +177,7 @@ fn get_notify_msg_and_payload(stream: &mut StringStream) -> Result<(Option<Token
 fn get_result_msg_and_payload(
     full: &str,
     stream: &mut StringStream,
-) -> Result<(Option<Token>, String, Option<Value>)> {
+) -> Result<(Option<Token>, String, Option<Dict>)> {
     let caps = RESULT_RE
         .captures(full)
         .ok_or_else(|| Error::ExpectedResultMsg(full.into()))?;
@@ -198,7 +201,7 @@ fn get_result_msg_and_payload(
 /// return (tuple):
 ///     Number of characters parsed from to_parse
 ///     Parsed dictionary
-fn parse_dict(stream: &mut StringStream) -> Result<Value> {
+fn parse_dict(stream: &mut StringStream) -> Result<Dict> {
     let mut obj: HashMap<String, Value> = HashMap::new();
 
     loop {
@@ -243,7 +246,7 @@ fn parse_dict(stream: &mut StringStream) -> Result<Value> {
         stream.seek_back(1);
     }
 
-    Ok(Value::Dict(obj))
+    Ok(obj)
 }
 
 fn parse_key_val(stream: &mut StringStream) -> Result<(String, Value)> {
@@ -264,8 +267,8 @@ fn parse_val(stream: &mut StringStream) -> Result<Value> {
     let c = c.as_bytes()[0];
 
     match c {
-        DICT_START => Ok(parse_dict(stream)?),
-        ARRAY_START => Ok(parse_array(stream)?),
+        DICT_START => Ok(Value::Dict(parse_dict(stream)?)),
+        ARRAY_START => Ok(Value::List(parse_array(stream)?)),
         b'"' => {
             let val = stream.advance_past_string_with_gdb_escapes();
             Ok(Value::String(val))
@@ -290,7 +293,7 @@ fn parse_token(i: &str) -> Result<Token> {
 }
 
 /// Parse an array, stream should be passed the initial [
-fn parse_array(stream: &mut StringStream) -> Result<Value> {
+fn parse_array(stream: &mut StringStream) -> Result<List> {
     let mut arr = Vec::new();
     loop {
         let c = stream.read(1);
@@ -311,7 +314,7 @@ fn parse_array(stream: &mut StringStream) -> Result<Value> {
             break;
         }
     }
-    Ok(Value::List(arr))
+    Ok(arr)
 }
 
 #[cfg(test)]
@@ -407,7 +410,7 @@ mod tests {
         let expected = Response::Result {
             token: None,
             message: "done".into(),
-            payload: Some(Value::Dict(payload)),
+            payload: Some(payload),
         };
 
         let actual = parse_response(
@@ -450,7 +453,7 @@ mod tests {
 
         let expected = Response::Notify {
             message: "breakpoint-modified".into(),
-            payload: Value::Dict(payload),
+            payload,
             token: None,
         };
 
@@ -485,7 +488,7 @@ mod tests {
         assert_eq!(
             Response::Notify {
                 message: "event".into(),
-                payload: Value::Dict(payload),
+                payload,
                 token: None,
             },
             parse_response(r#"=event,name="gdb"discardme"#)?,
