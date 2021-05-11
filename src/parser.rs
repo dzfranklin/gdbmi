@@ -8,8 +8,6 @@ use crate::{
 use lazy_static::lazy_static;
 use regex::Regex;
 
-// TODO: Refactor to use bytes instead of strings
-
 type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug, Clone, thiserror::Error, displaydoc::Display)]
