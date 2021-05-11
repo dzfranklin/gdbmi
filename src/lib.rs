@@ -225,6 +225,7 @@ impl Gdb {
     ///
     /// You do not need to call this before sending commands yourself.
     pub async fn await_ready(&self) -> Result<(), Error> {
+        // Arbitrary command, chosen because its output isn't too big
         self.execute_raw("-list-target-features").await?;
         Ok(())
     }
