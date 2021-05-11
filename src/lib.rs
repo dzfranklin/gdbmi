@@ -17,7 +17,7 @@ pub mod symbol;
 
 use inner::Inner;
 
-use crate::symbol::Symbol;
+use crate::symbol::Function;
 
 #[cfg(test)]
 mod test_common;
@@ -205,7 +205,9 @@ impl Gdb {
             .expect_msg_is("done")
     }
 
-    pub async fn symbol_info_functions(&self) -> Result<HashMap<Utf8PathBuf, Vec<Symbol>>, Error> {
+    pub async fn symbol_info_functions(
+        &self,
+    ) -> Result<HashMap<Utf8PathBuf, Vec<Function>>, Error> {
         let payload = self
             .execute_raw("-symbol-info-functions")
             .await?

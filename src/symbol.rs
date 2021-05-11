@@ -3,16 +3,16 @@ use camino::Utf8PathBuf;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Symbol {
+pub struct Function {
     pub line: u32,
     pub name: String,
-    pub symbol_type: String,
+    pub function_type: String,
     pub description: String,
 }
 
 pub(crate) fn from_symbol_info_functions_payload(
     mut payload: raw::Dict,
-) -> Result<HashMap<Utf8PathBuf, Vec<Symbol>>, Error> {
+) -> Result<HashMap<Utf8PathBuf, Vec<Function>>, Error> {
     let raw = payload
         .remove_expect("symbols")?
         .expect_dict()?
@@ -35,10 +35,10 @@ pub(crate) fn from_symbol_info_functions_payload(
             let symbol_type = raw.remove_expect("type")?.expect_string()?;
             let description = raw.remove_expect("description")?.expect_string()?;
 
-            symbols.push(Symbol {
+            symbols.push(Function {
                 line,
                 name,
-                symbol_type,
+                function_type: symbol_type,
                 description,
             });
         }
