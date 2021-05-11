@@ -1,45 +1,15 @@
 use std::collections::HashMap;
 
-use crate::string_stream::StringStream;
+use crate::{
+    raw::{Dict, GeneralMessage, List, Value},
+    string_stream::StringStream,
+    Token,
+};
 use lazy_static::lazy_static;
 use regex::Regex;
+use tracing::{debug, warn};
 
 // TODO: Refactor to use bytes instead of strings
-// TODO: Replace eyre with thiserror
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Response {
-    Notify {
-        token: Option<Token>,
-        message: String,
-        payload: Dict,
-    },
-    Result {
-        token: Option<Token>,
-        message: String,
-        payload: Option<Dict>,
-    },
-    Console(String),
-    Log(String),
-    Target(String),
-    Done,
-    /// Not the output of gdbmi, so probably the inferior being debugged printed
-    /// this to its stdout.
-    InferiorOutput(String),
-}
-
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub enum Value {
-    String(String),
-    List(List),
-    Dict(Dict),
-}
-
-pub type Dict = HashMap<String, Value>;
-pub type List = Vec<Value>;
-
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
-pub struct Token(pub u32);
 
 type Result<T> = std::result::Result<T, Error>;
 
@@ -55,66 +25,86 @@ pub enum Error {
     TokenParse(String, #[source] std::num::ParseIntError),
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) enum Message {
+    Response(Response),
+    General(GeneralMessage),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) enum Response {
+    Notify {
+        token: Option<Token>,
+        message: String,
+        payload: Dict,
+    },
+    Result {
+        token: Option<Token>,
+        message: String,
+        payload: Option<Dict>,
+    },
+}
+
+impl Response {
+    pub(crate) fn token(&self) -> Option<Token> {
+        match self {
+            Self::Notify { token, .. } => *token,
+            Self::Result { token, .. } => *token,
+        }
+    }
+}
+
+impl From<GeneralMessage> for Message {
+    fn from(msg: GeneralMessage) -> Self {
+        Self::General(msg)
+    }
+}
+
+impl From<Response> for Message {
+    fn from(msg: Response) -> Self {
+        Self::Response(msg)
+    }
+}
+
 /// Parse the output of gdbmi
 ///
 /// See https://sourceware.org/gdb/onlinedocs/gdb/GDB_002fMI-Stream-Records.html#GDB_002fMI-Stream-Records
 /// for details on types of gdb mi output.
-pub fn parse_response(i: &str) -> Result<Response> {
+pub(crate) fn parse_message(i: &str) -> Result<Message> {
+    assert!(!i.contains('\n'));
     let mut stream = StringStream::new(i.to_owned());
 
     if NOTIFY_RE.is_match(i) {
         let (token, message, payload) = get_notify_msg_and_payload(&mut stream)?;
-        Ok(Response::Notify {
+        let resp = Response::Notify {
+            token,
             message,
             payload,
-            token,
-        })
+        }
+        .into();
+        Ok(resp)
     } else if RESULT_RE.is_match(i) {
         let (token, message, payload) = get_result_msg_and_payload(i, &mut stream)?;
-        Ok(Response::Result {
+        let resp = Response::Result {
+            token,
             message,
             payload,
-            token,
-        })
+        }
+        .into();
+        Ok(resp)
     } else if let Some(caps) = CONSOLE_RE.captures(i) {
         let message = caps.get(1).unwrap().as_str().to_owned();
-        Ok(Response::Console(message))
+        Ok(GeneralMessage::Console(message).into())
     } else if let Some(caps) = LOG_RE.captures(i) {
         let payload = caps.get(1).unwrap().as_str().to_owned();
-        Ok(Response::Log(payload))
+        Ok(GeneralMessage::Log(payload).into())
     } else if let Some(caps) = TARGET_OUTPUT_RE.captures(i) {
         let payload = caps.get(1).unwrap().as_str().to_owned();
-        Ok(Response::Target(payload))
+        Ok(GeneralMessage::Target(payload).into())
     } else if RESPONSE_FINISHED_RE.is_match(i) {
-        Ok(Response::Done)
+        Ok(GeneralMessage::Done.into())
     } else {
-        Ok(Response::InferiorOutput(i.to_owned()))
-    }
-}
-
-impl Value {
-    fn into_appended(self, other: Self) -> Self {
-        let mut list = match self {
-            val @ Self::String(_) => vec![val],
-            Self::List(list) => list,
-            Self::Dict(_) => panic!(
-                "Attempted to workaround duplicate key bug, but can't combine dict with anything"
-            ),
-        };
-
-        let mut other = match other {
-            val @ Self::String(_) => vec![val],
-            Self::List(list) => list,
-            Self::Dict(_) => panic!(
-                "Attempted to workaround duplicate key bug, but can't combine anything with dict"
-            ),
-        };
-
-        for val in other.drain(..) {
-            list.push(val);
-        }
-
-        Self::List(list)
+        Ok(GeneralMessage::InferiorStdout(i.to_owned()).into())
     }
 }
 
@@ -246,7 +236,7 @@ fn parse_dict(stream: &mut StringStream) -> Result<Dict> {
         stream.seek_back(1);
     }
 
-    Ok(obj)
+    Ok(Dict::new(obj))
 }
 
 fn parse_key_val(stream: &mut StringStream) -> Result<(String, Value)> {
@@ -329,29 +319,46 @@ mod tests {
     #[test]
     fn test_parse_basic() -> Result {
         assert_eq!(
-            Response::Result {
+            Message::from(Response::Result {
                 token: None,
                 message: "done".into(),
                 payload: None
-            },
-            parse_response("^done")?
+            }),
+            parse_message("^done")?
         );
 
         assert_eq!(
-            Response::Console("done".into()),
-            parse_response(r#"~"done""#)?
+            Message::from(GeneralMessage::Console("done".into())),
+            parse_message(r#"~"done""#)?
         );
 
         assert_eq!(
-            Response::Target("done".into()),
-            parse_response(r#"@"done""#)?
+            Message::from(GeneralMessage::Target("done".into())),
+            parse_message(r#"@"done""#)?
         );
 
-        assert_eq!(Response::Log("done".into()), parse_response(r#"&"done""#)?);
+        assert_eq!(
+            Message::from(GeneralMessage::Log("done".into())),
+            parse_message(r#"&"done""#)?
+        );
 
         assert_eq!(
-            Response::InferiorOutput("done".into()),
-            parse_response("done")?
+            Message::from(GeneralMessage::InferiorStdout("done".into())),
+            parse_message("done")?
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_parse_basic_with_token() -> Result {
+        assert_eq!(
+            Message::from(Response::Result {
+                token: Some(Token(544760273)),
+                message: "done".into(),
+                payload: None
+            }),
+            parse_message("544760273^done")?
         );
 
         Ok(())
@@ -359,29 +366,41 @@ mod tests {
 
     #[test]
     fn test_escape_sequences() -> Result {
-        assert_eq!(Response::Console("".into()), parse_response(r#"~"""#)?);
-
         assert_eq!(
-            Response::Console(r#"\b\f\n\r\t""#.into()),
-            parse_response(r#"~"\b\f\n\r\t"""#)?
+            Message::from(GeneralMessage::Console("".into())),
+            parse_message(r#"~"""#)?
         );
 
-        assert_eq!(Response::Target("".into()), parse_response(r#"@"""#)?);
-
         assert_eq!(
-            Response::Target(r#"\b\f\n\r\t""#.into()),
-            parse_response(r#"@"\b\f\n\r\t"""#)?
+            Message::from(GeneralMessage::Console(r#"\b\f\n\r\t""#.into())),
+            parse_message(r#"~"\b\f\n\r\t"""#)?
         );
 
-        assert_eq!(Response::Log("".into()), parse_response(r#"&"""#)?);
+        assert_eq!(
+            Message::from(GeneralMessage::Target("".into())),
+            parse_message(r#"@"""#)?
+        );
 
         assert_eq!(
-            Response::Log(r#"\b\f\n\r\t""#.into()),
-            parse_response(r#"&"\b\f\n\r\t"""#)?
+            Message::from(GeneralMessage::Target(r#"\b\f\n\r\t""#.into())),
+            parse_message(r#"@"\b\f\n\r\t"""#)?
+        );
+
+        assert_eq!(
+            Message::from(GeneralMessage::Log("".into())),
+            parse_message(r#"&"""#)?
+        );
+
+        assert_eq!(
+            Message::from(GeneralMessage::Log(r#"\b\f\n\r\t""#.into())),
+            parse_message(r#"&"\b\f\n\r\t"""#)?
         );
 
         // test that an escaped backslash gets captured
-        assert_eq!(Response::Log(r"\".into()), parse_response(r#"&"\""#)?,);
+        assert_eq!(
+            Message::from(GeneralMessage::Log(r"\".into())),
+            parse_message(r#"&"\""#)?,
+        );
 
         Ok(())
     }
@@ -401,19 +420,20 @@ mod tests {
                 Value::String("1".into()),
             ]),
         );
-        payload.insert("thread-ids".into(), Value::Dict(thread_ids));
+        payload.insert("thread-ids".into(), Value::Dict(Dict::new(thread_ids)));
 
         payload.insert("current-thread-id".into(), Value::String("1".into()));
 
         payload.insert("number-of-threads".into(), Value::String("3".into()));
 
-        let expected = Response::Result {
+        let expected: Message = Response::Result {
             token: None,
             message: "done".into(),
-            payload: Some(payload),
-        };
+            payload: Some(Dict::new(payload)),
+        }
+        .into();
 
-        let actual = parse_response(
+        let actual = parse_message(
             r#"^done,thread-ids={thread-id="3",thread-id="2",thread-id="1"}, current-thread-id="1",number-of-threads="3""#,
         )?;
 
@@ -449,15 +469,16 @@ mod tests {
         bkpt.insert("type".into(), Value::String("breakpoint".into()));
 
         let mut payload = HashMap::new();
-        payload.insert("bkpt".into(), Value::Dict(bkpt));
+        payload.insert("bkpt".into(), Value::Dict(Dict::new(bkpt)));
 
-        let expected = Response::Notify {
+        let expected: Message = Response::Notify {
             message: "breakpoint-modified".into(),
-            payload,
+            payload: Dict::new(payload),
             token: None,
-        };
+        }
+        .into();
 
-        let actual = parse_response(
+        let actual = parse_message(
             r#"=breakpoint-modified,bkpt={number="1",empty_arr=[],type="breakpoint",disp="keep",enabled="y",addr="0x000000000040059c",func="main",file="hello.c",fullname="/home/git/pygdbmi/tests/sample_c_app/hello.c",line="9",thread-groups=["i1"],times="1",original-location="hello.c:9"}"#,
         )?;
 
@@ -469,12 +490,12 @@ mod tests {
     #[test]
     fn test_record_with_token() -> Result {
         assert_eq!(
-            Response::Result {
+            Message::from(Response::Result {
                 payload: None,
                 message: "done".into(),
                 token: Some(Token(1342)),
-            },
-            parse_response("1342^done")?
+            }),
+            parse_message("1342^done")?
         );
 
         Ok(())
@@ -486,12 +507,12 @@ mod tests {
         let mut payload = HashMap::new();
         payload.insert("name".into(), Value::String("gdb".into()));
         assert_eq!(
-            Response::Notify {
+            Message::from(Response::Notify {
                 message: "event".into(),
-                payload,
+                payload: Dict::new(payload),
                 token: None,
-            },
-            parse_response(r#"=event,name="gdb"discardme"#)?,
+            }),
+            parse_message(r#"=event,name="gdb"discardme"#)?,
         );
         Ok(())
     }

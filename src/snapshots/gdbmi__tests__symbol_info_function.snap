@@ -1,0 +1,2427 @@
+---
+source: src/lib.rs
+expression: symbols
+
+---
+{
+    "/cargo/registry/src/github.com-1ecc6299db9ec823/addr2line-0.14.0/src/lib.rs": [
+        Symbol {
+            line: 187,
+            name: "addr2line::Context<R>::from_dwarf",
+            symbol_type: "fn ()",
+            description: "static fn addr2line::Context<R>::from_dwarf();",
+        },
+        Symbol {
+            line: 970,
+            name: "addr2line::Function<R>::parse_children",
+            symbol_type: "fn ()",
+            description: "static fn addr2line::Function<R>::parse_children();",
+        },
+        Symbol {
+            line: 1204,
+            name: "addr2line::RangeAttributes<R>::for_each_range::{{closure}}",
+            symbol_type: "fn ()",
+            description: "static fn addr2line::RangeAttributes<R>::for_each_range::{{closure}}();",
+        },
+        Symbol {
+            line: 537,
+            name: "addr2line::ResUnit<R>::find_location",
+            symbol_type: "fn ()",
+            description: "static fn addr2line::ResUnit<R>::find_location();",
+        },
+        Symbol {
+            line: 445,
+            name: "addr2line::ResUnit<R>::parse_lines",
+            symbol_type: "fn ()",
+            description: "static fn addr2line::ResUnit<R>::parse_lines();",
+        },
+        Symbol {
+            line: 612,
+            name: "addr2line::ResUnit<R>::render_file",
+            symbol_type: "fn ()",
+            description: "static fn addr2line::ResUnit<R>::render_file();",
+        },
+        Symbol {
+            line: 657,
+            name: "addr2line::name_attr",
+            symbol_type: "fn ()",
+            description: "static fn addr2line::name_attr();",
+        },
+    ],
+    "/cargo/registry/src/github.com-1ecc6299db9ec823/compiler_builtins-0.1.39/src/macros.rs": [
+        Symbol {
+            line: 269,
+            name: "compiler_builtins::int::udiv::__umodti3::__umodti3",
+            symbol_type: "fn ()",
+            description: "fn compiler_builtins::int::udiv::__umodti3::__umodti3();",
+        },
+    ],
+    "/cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.23.0/src/read/dwarf.rs": [
+        Symbol {
+            line: 210,
+            name: "gimli::read::dwarf::Dwarf<R>::attr_string",
+            symbol_type: "fn ()",
+            description: "static fn gimli::read::dwarf::Dwarf<R>::attr_string();",
+        },
+    ],
+    "/cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.23.0/src/read/line.rs": [
+        Symbol {
+            line: 1596,
+            name: "gimli::read::line::FileEntry<R,Offset>::parse",
+            symbol_type: "fn ()",
+            description: "static fn gimli::read::line::FileEntry<R,Offset>::parse();",
+        },
+        Symbol {
+            line: 1689,
+            name: "gimli::read::line::FileEntryFormat::parse",
+            symbol_type: "fn ()",
+            description: "static fn gimli::read::line::FileEntryFormat::parse();",
+        },
+        Symbol {
+            line: 1784,
+            name: "gimli::read::line::parse_attribute",
+            symbol_type: "fn ()",
+            description: "static fn gimli::read::line::parse_attribute();",
+        },
+    ],
+    "/cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.23.0/src/read/reader.rs": [
+        Symbol {
+            line: 424,
+            name: "gimli::read::reader::Reader::read_address",
+            symbol_type: "fn ()",
+            description: "static fn gimli::read::reader::Reader::read_address();",
+        },
+    ],
+    "/cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.23.0/src/read/rnglists.rs": [
+        Symbol {
+            line: 468,
+            name: "gimli::read::rnglists::RngListIter<R>::next",
+            symbol_type: "fn ()",
+            description: "static fn gimli::read::rnglists::RngListIter<R>::next();",
+        },
+    ],
+    "/cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.23.0/src/read/unit.rs": [
+        Symbol {
+            line: 946,
+            name: "<gimli::read::unit::AttributeValue<R,Offset> as core::clone::Clone>::clone",
+            symbol_type: "fn ()",
+            description: "static fn <gimli::read::unit::AttributeValue<R,Offset> as core::clone::Clone>::clone();",
+        },
+        Symbol {
+            line: 1151,
+            name: "gimli::read::unit::Attribute<R>::value",
+            symbol_type: "fn ()",
+            description: "static fn gimli::read::unit::Attribute<R>::value();",
+        },
+        Symbol {
+            line: 1986,
+            name: "gimli::read::unit::parse_attribute",
+            symbol_type: "fn ()",
+            description: "static fn gimli::read::unit::parse_attribute();",
+        },
+    ],
+    "/cargo/registry/src/github.com-1ecc6299db9ec823/rustc-demangle-0.1.18/src/legacy.rs": [
+        Symbol {
+            line: 106,
+            name: "<rustc_demangle::legacy::Demangle as core::fmt::Display>::fmt",
+            symbol_type: "fn ()",
+            description: "fn <rustc_demangle::legacy::Demangle as core::fmt::Display>::fmt();",
+        },
+    ],
+    "/cargo/registry/src/github.com-1ecc6299db9ec823/rustc-demangle-0.1.18/src/lib.rs": [
+        Symbol {
+            line: 180,
+            name: "<rustc_demangle::Demangle as core::fmt::Display>::fmt",
+            symbol_type: "fn ()",
+            description: "fn <rustc_demangle::Demangle as core::fmt::Display>::fmt();",
+        },
+        Symbol {
+            line: 147,
+            name: "rustc_demangle::Demangle::as_str",
+            symbol_type: "fn ()",
+            description: "fn rustc_demangle::Demangle::as_str();",
+        },
+        Symbol {
+            line: 65,
+            name: "rustc_demangle::demangle",
+            symbol_type: "fn ()",
+            description: "fn rustc_demangle::demangle();",
+        },
+        Symbol {
+            line: 136,
+            name: "rustc_demangle::try_demangle",
+            symbol_type: "fn ()",
+            description: "fn rustc_demangle::try_demangle();",
+        },
+    ],
+    "/cargo/registry/src/github.com-1ecc6299db9ec823/rustc-demangle-0.1.18/src/v0.rs": [
+        Symbol {
+            line: 209,
+            name: "<rustc_demangle::v0::Ident as core::fmt::Display>::fmt",
+            symbol_type: "fn ()",
+            description: "fn <rustc_demangle::v0::Ident as core::fmt::Display>::fmt();",
+        },
+        Symbol {
+            line: 370,
+            name: "rustc_demangle::v0::Parser::ident",
+            symbol_type: "fn ()",
+            description: "static fn rustc_demangle::v0::Parser::ident();",
+        },
+        Symbol {
+            line: 529,
+            name: "rustc_demangle::v0::Parser::skip_const",
+            symbol_type: "fn ()",
+            description: "static fn rustc_demangle::v0::Parser::skip_const();",
+        },
+        Symbol {
+            line: 414,
+            name: "rustc_demangle::v0::Parser::skip_path",
+            symbol_type: "fn ()",
+            description: "static fn rustc_demangle::v0::Parser::skip_path();",
+        },
+        Symbol {
+            line: 466,
+            name: "rustc_demangle::v0::Parser::skip_type",
+            symbol_type: "fn ()",
+            description: "static fn rustc_demangle::v0::Parser::skip_type();",
+        },
+        Symbol {
+            line: 947,
+            name: "rustc_demangle::v0::Printer::print_const",
+            symbol_type: "fn ()",
+            description: "static fn rustc_demangle::v0::Printer::print_const();",
+        },
+        Symbol {
+            line: 983,
+            name: "rustc_demangle::v0::Printer::print_const_uint",
+            symbol_type: "fn ()",
+            description: "static fn rustc_demangle::v0::Printer::print_const_uint();",
+        },
+        Symbol {
+            line: 923,
+            name: "rustc_demangle::v0::Printer::print_dyn_trait",
+            symbol_type: "fn ()",
+            description: "static fn rustc_demangle::v0::Printer::print_dyn_trait();",
+        },
+        Symbol {
+            line: 767,
+            name: "rustc_demangle::v0::Printer::print_generic_arg",
+            symbol_type: "fn ()",
+            description: "static fn rustc_demangle::v0::Printer::print_generic_arg();",
+        },
+        Symbol {
+            line: 618,
+            name: "rustc_demangle::v0::Printer::print_lifetime_from_index",
+            symbol_type: "fn ()",
+            description: "static fn rustc_demangle::v0::Printer::print_lifetime_from_index();",
+        },
+        Symbol {
+            line: 686,
+            name: "rustc_demangle::v0::Printer::print_path",
+            symbol_type: "fn ()",
+            description: "static fn rustc_demangle::v0::Printer::print_path();",
+        },
+        Symbol {
+            line: 909,
+            name: "rustc_demangle::v0::Printer::print_path_maybe_open_generics",
+            symbol_type: "fn ()",
+            description: "static fn rustc_demangle::v0::Printer::print_path_maybe_open_generics();",
+        },
+        Symbol {
+            line: 778,
+            name: "rustc_demangle::v0::Printer::print_type",
+            symbol_type: "fn ()",
+            description: "static fn rustc_demangle::v0::Printer::print_type();",
+        },
+        Symbol {
+            line: 828,
+            name: "rustc_demangle::v0::Printer::print_type::{{closure}}",
+            symbol_type: "fn ()",
+            description: "static fn rustc_demangle::v0::Printer::print_type::{{closure}}();",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/alloc.rs": [
+        Symbol {
+            line: 225,
+            name: "<alloc::alloc::Global as core::alloc::Allocator>::allocate",
+            symbol_type: "fn (*mut alloc::alloc::Global, core::alloc::layout::Layout) -> core::result::Result<core::ptr::non_null::NonNull<[u8]>, core::alloc::AllocError>",
+            description: "static fn <alloc::alloc::Global as core::alloc::Allocator>::allocate(*mut alloc::alloc::Global, core::alloc::layout::Layout) -> core::result::Result<core::ptr::non_null::NonNull<[u8]>, core::alloc::AllocError>;",
+        },
+        Symbol {
+            line: 230,
+            name: "<alloc::alloc::Global as core::alloc::Allocator>::allocate_zeroed",
+            symbol_type: "fn (*mut alloc::alloc::Global, core::alloc::layout::Layout) -> core::result::Result<core::ptr::non_null::NonNull<[u8]>, core::alloc::AllocError>",
+            description: "static fn <alloc::alloc::Global as core::alloc::Allocator>::allocate_zeroed(*mut alloc::alloc::Global, core::alloc::layout::Layout) -> core::result::Result<core::ptr::non_null::NonNull<[u8]>, core::alloc::AllocError>;",
+        },
+        Symbol {
+            line: 235,
+            name: "<alloc::alloc::Global as core::alloc::Allocator>::deallocate",
+            symbol_type: "fn (*mut alloc::alloc::Global, core::ptr::non_null::NonNull<u8>, core::alloc::layout::Layout)",
+            description: "static fn <alloc::alloc::Global as core::alloc::Allocator>::deallocate(*mut alloc::alloc::Global, core::ptr::non_null::NonNull<u8>, core::alloc::layout::Layout);",
+        },
+        Symbol {
+            line: 161,
+            name: "alloc::alloc::Global::alloc_impl",
+            symbol_type: "fn (*mut alloc::alloc::Global, core::alloc::layout::Layout, bool) -> core::result::Result<core::ptr::non_null::NonNull<[u8]>, core::alloc::AllocError>",
+            description: "static fn alloc::alloc::Global::alloc_impl(*mut alloc::alloc::Global, core::alloc::layout::Layout, bool) -> core::result::Result<core::ptr::non_null::NonNull<[u8]>, core::alloc::AllocError>;",
+        },
+        Symbol {
+            line: 85,
+            name: "alloc::alloc::alloc",
+            symbol_type: "fn (core::alloc::layout::Layout) -> *mut u8",
+            description: "static fn alloc::alloc::alloc(core::alloc::layout::Layout) -> *mut u8;",
+        },
+        Symbol {
+            line: 154,
+            name: "alloc::alloc::alloc_zeroed",
+            symbol_type: "fn (core::alloc::layout::Layout) -> *mut u8",
+            description: "static fn alloc::alloc::alloc_zeroed(core::alloc::layout::Layout) -> *mut u8;",
+        },
+        Symbol {
+            line: 103,
+            name: "alloc::alloc::dealloc",
+            symbol_type: "fn (*mut u8, core::alloc::layout::Layout)",
+            description: "static fn alloc::alloc::dealloc(*mut u8, core::alloc::layout::Layout);",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/raw_vec.rs": [
+        Symbol {
+            line: 524,
+            name: "alloc::raw_vec::alloc_guard",
+            symbol_type: "fn (usize) -> core::result::Result<(), alloc::collections::TryReserveError>",
+            description: "static fn alloc::raw_vec::alloc_guard(usize) -> core::result::Result<(), alloc::collections::TryReserveError>;",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/slice.rs": [
+        Symbol {
+            line: 162,
+            name: "alloc::slice::hack::to_vec",
+            symbol_type: "fn (&[u8], alloc::alloc::Global) -> alloc::vec::Vec<u8, alloc::alloc::Global>",
+            description: "static fn alloc::slice::hack::to_vec(&[u8], alloc::alloc::Global) -> alloc::vec::Vec<u8, alloc::alloc::Global>;",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/str.rs": [
+        Symbol {
+            line: 206,
+            name: "alloc::str::<impl alloc::borrow::ToOwned for str>::to_owned",
+            symbol_type: "fn (&str) -> alloc::string::String",
+            description: "static fn alloc::str::<impl alloc::borrow::ToOwned for str>::to_owned(&str) -> alloc::string::String;",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/string.rs": [
+        Symbol {
+            line: 2342,
+            name: "<alloc::string::String as core::convert::From<&str>>::from",
+            symbol_type: "fn (&str) -> alloc::string::String",
+            description: "static fn <alloc::string::String as core::convert::From<&str>>::from(&str) -> alloc::string::String;",
+        },
+        Symbol {
+            line: 2020,
+            name: "<alloc::string::String as core::fmt::Display>::fmt",
+            symbol_type: "fn (*mut alloc::string::String, *mut core::fmt::Formatter) -> core::result::Result",
+            description: "static fn <alloc::string::String as core::fmt::Display>::fmt(*mut alloc::string::String, *mut core::fmt::Formatter) -> core::result::Result;",
+        },
+        Symbol {
+            line: 2203,
+            name: "<alloc::string::String as core::ops::deref::Deref>::deref",
+            symbol_type: "fn (*mut alloc::string::String) -> &str",
+            description: "static fn <alloc::string::String as core::ops::deref::Deref>::deref(*mut alloc::string::String) -> &str;",
+        },
+        Symbol {
+            line: 747,
+            name: "alloc::string::String::from_utf8_unchecked",
+            symbol_type: "fn (alloc::vec::Vec<u8, alloc::alloc::Global>) -> alloc::string::String",
+            description: "static fn alloc::string::String::from_utf8_unchecked(alloc::vec::Vec<u8, alloc::alloc::Global>) -> alloc::string::String;",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs": [
+        Symbol {
+            line: 1130,
+            name: "alloc::vec::Vec<T,A>::as_mut_ptr",
+            symbol_type: "fn (*mut alloc::vec::Vec<u8, alloc::alloc::Global>) -> *mut u8",
+            description: "static fn alloc::vec::Vec<T,A>::as_mut_ptr(*mut alloc::vec::Vec<u8, alloc::alloc::Global>) -> *mut u8;",
+        },
+        Symbol {
+            line: 1094,
+            name: "alloc::vec::Vec<T,A>::as_ptr",
+            symbol_type: "fn (*mut alloc::vec::Vec<u8, alloc::alloc::Global>) -> *mut u8",
+            description: "static fn alloc::vec::Vec<T,A>::as_ptr(*mut alloc::vec::Vec<u8, alloc::alloc::Global>) -> *mut u8;",
+        },
+        Symbol {
+            line: 1227,
+            name: "alloc::vec::Vec<T,A>::set_len",
+            symbol_type: "fn (*mut alloc::vec::Vec<u8, alloc::alloc::Global>, usize)",
+            description: "static fn alloc::vec::Vec<T,A>::set_len(*mut alloc::vec::Vec<u8, alloc::alloc::Global>, usize);",
+        },
+        Symbol {
+            line: 571,
+            name: "alloc::vec::Vec<T,A>::with_capacity_in",
+            symbol_type: "fn (usize, alloc::alloc::Global) -> alloc::vec::Vec<u8, alloc::alloc::Global>",
+            description: "static fn alloc::vec::Vec<T,A>::with_capacity_in(usize, alloc::alloc::Global) -> alloc::vec::Vec<u8, alloc::alloc::Global>;",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/alloc/layout.rs": [
+        Symbol {
+            line: 13,
+            name: "core::alloc::layout::size_align",
+            symbol_type: "fn () -> (usize, usize)",
+            description: "static fn core::alloc::layout::size_align() -> (usize, usize);",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/convert/mod.rs": [
+        Symbol {
+            line: 537,
+            name: "<T as core::convert::Into<U>>::into",
+            symbol_type: "fn (&str) -> alloc::string::String",
+            description: "static fn <T as core::convert::Into<U>>::into(&str) -> alloc::string::String;",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/fmt/mod.rs": [
+        Symbol {
+            line: 313,
+            name: "core::fmt::Arguments::new_v1",
+            symbol_type: "fn (&[&str], &[core::fmt::ArgumentV1]) -> core::fmt::Arguments",
+            description: "static fn core::fmt::Arguments::new_v1(&[&str], &[core::fmt::ArgumentV1]) -> core::fmt::Arguments;",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/hint.rs": [
+        Symbol {
+            line: 159,
+            name: "core::hint::black_box",
+            symbol_type: "fn (())",
+            description: "static fn core::hint::black_box(());",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/num/nonzero.rs": [
+        Symbol {
+            line: 75,
+            name: "core::num::nonzero::NonZeroUsize::get",
+            symbol_type: "fn (core::num::nonzero::NonZeroUsize) -> usize",
+            description: "static fn core::num::nonzero::NonZeroUsize::get(core::num::nonzero::NonZeroUsize) -> usize;",
+        },
+        Symbol {
+            line: 53,
+            name: "core::num::nonzero::NonZeroUsize::new_unchecked",
+            symbol_type: "fn (usize) -> core::num::nonzero::NonZeroUsize",
+            description: "static fn core::num::nonzero::NonZeroUsize::new_unchecked(usize) -> core::num::nonzero::NonZeroUsize;",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/num/uint_macros.rs": [
+        Symbol {
+            line: 491,
+            name: "core::num::<impl usize>::checked_mul",
+            symbol_type: "fn (usize, usize) -> core::option::Option<usize>",
+            description: "static fn core::num::<impl usize>::checked_mul(usize, usize) -> core::option::Option<usize>;",
+        },
+        Symbol {
+            line: 84,
+            name: "core::num::<impl usize>::count_ones",
+            symbol_type: "fn (usize) -> u32",
+            description: "static fn core::num::<impl usize>::count_ones(usize) -> u32;",
+        },
+        Symbol {
+            line: 1509,
+            name: "core::num::<impl usize>::is_power_of_two",
+            symbol_type: "fn (usize) -> bool",
+            description: "static fn core::num::<impl usize>::is_power_of_two(usize) -> bool;",
+        },
+        Symbol {
+            line: 1163,
+            name: "core::num::<impl usize>::overflowing_mul",
+            symbol_type: "fn (usize, usize) -> (usize, bool)",
+            description: "static fn core::num::<impl usize>::overflowing_mul(usize, usize) -> (usize, bool);",
+        },
+        Symbol {
+            line: 818,
+            name: "core::num::<impl usize>::wrapping_add",
+            symbol_type: "fn (usize, usize) -> usize",
+            description: "static fn core::num::<impl usize>::wrapping_add(usize, usize) -> usize;",
+        },
+        Symbol {
+            line: 838,
+            name: "core::num::<impl usize>::wrapping_sub",
+            symbol_type: "fn (usize, usize) -> usize",
+            description: "static fn core::num::<impl usize>::wrapping_sub(usize, usize) -> usize;",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ops/function.rs": [
+        Symbol {
+            line: 227,
+            name: "core::ops::function::FnOnce::call_once",
+            symbol_type: "fn (std::rt::lang_start::closure-0, ()) -> i32",
+            description: "static fn core::ops::function::FnOnce::call_once(std::rt::lang_start::closure-0, ()) -> i32;",
+        },
+        Symbol {
+            line: 227,
+            name: "core::ops::function::FnOnce::call_once{{vtable-shim}}",
+            symbol_type: "fn (*mut std::rt::lang_start::closure-0, ()) -> i32",
+            description: "static fn core::ops::function::FnOnce::call_once{{vtable-shim}}(*mut std::rt::lang_start::closure-0, ()) -> i32;",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/option.rs": [
+        Symbol {
+            line: 565,
+            name: "core::option::Option<T>::ok_or",
+            symbol_type: "fn (core::option::Option<core::ptr::non_null::NonNull<u8>>, core::alloc::AllocError) -> core::result::Result<core::ptr::non_null::NonNull<u8>, core::alloc::AllocError>",
+            description: "static fn core::option::Option<T>::ok_or(core::option::Option<core::ptr::non_null::NonNull<u8>>, core::alloc::AllocError) -> core::result::Result<core::ptr::non_null::NonNull<u8>, core::alloc::AllocError>;",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/const_ptr.rs": [
+        Symbol {
+            line: 47,
+            name: "core::ptr::const_ptr::<impl *const T>::cast",
+            symbol_type: "fn (*mut u8) -> *mut ()",
+            description: "static fn core::ptr::const_ptr::<impl *const T>::cast(*mut u8) -> *mut ();",
+        },
+        Symbol {
+            line: 844,
+            name: "core::ptr::const_ptr::<impl *const T>::copy_to_nonoverlapping",
+            symbol_type: "fn (*mut u8, *mut u8, usize)",
+            description: "static fn core::ptr::const_ptr::<impl *const T>::copy_to_nonoverlapping(*mut u8, *mut u8, usize);",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/metadata.rs": [
+        Symbol {
+            line: 110,
+            name: "core::ptr::metadata::from_raw_parts",
+            symbol_type: "fn (*mut (), usize) -> *const [u8]",
+            description: "static fn core::ptr::metadata::from_raw_parts(*mut (), usize) -> *const [u8];",
+        },
+        Symbol {
+            line: 127,
+            name: "core::ptr::metadata::from_raw_parts_mut",
+            symbol_type: "fn (*mut (), usize) -> *mut [u8]",
+            description: "static fn core::ptr::metadata::from_raw_parts_mut(*mut (), usize) -> *mut [u8];",
+        },
+        Symbol {
+            line: 93,
+            name: "core::ptr::metadata::metadata",
+            symbol_type: "fn (*const [u8]) -> usize",
+            description: "static fn core::ptr::metadata::metadata(*const [u8]) -> usize;",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mod.rs": [
+        Symbol {
+            line: 281,
+            name: "core::ptr::slice_from_raw_parts",
+            symbol_type: "fn (*mut u8, usize) -> *const [u8]",
+            description: "static fn core::ptr::slice_from_raw_parts(*mut u8, usize) -> *const [u8];",
+        },
+        Symbol {
+            line: 321,
+            name: "core::ptr::slice_from_raw_parts_mut",
+            symbol_type: "fn (*mut u8, usize) -> *mut [u8]",
+            description: "static fn core::ptr::slice_from_raw_parts_mut(*mut u8, usize) -> *mut [u8];",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/mut_ptr.rs": [
+        Symbol {
+            line: 46,
+            name: "core::ptr::mut_ptr::<impl *mut T>::cast",
+            symbol_type: "fn (*mut u8) -> *mut ()",
+            description: "static fn core::ptr::mut_ptr::<impl *mut T>::cast(*mut u8) -> *mut ();",
+        },
+        Symbol {
+            line: 437,
+            name: "core::ptr::mut_ptr::<impl *mut T>::guaranteed_eq",
+            symbol_type: "fn (*mut u8, *mut u8) -> bool",
+            description: "static fn core::ptr::mut_ptr::<impl *mut T>::guaranteed_eq(*mut u8, *mut u8) -> bool;",
+        },
+        Symbol {
+            line: 36,
+            name: "core::ptr::mut_ptr::<impl *mut T>::is_null",
+            symbol_type: "fn (*mut u8) -> bool",
+            description: "static fn core::ptr::mut_ptr::<impl *mut T>::is_null(*mut u8) -> bool;",
+        },
+        Symbol {
+            line: 1187,
+            name: "core::ptr::mut_ptr::<impl *mut [T]>::len",
+            symbol_type: "fn (*mut [u8]) -> usize",
+            description: "static fn core::ptr::mut_ptr::<impl *mut [T]>::len(*mut [u8]) -> usize;",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/non_null.rs": [
+        Symbol {
+            line: 598,
+            name: "<core::ptr::non_null::NonNull<T> as core::convert::From<core::ptr::unique::Unique<T>>>::from",
+            symbol_type: "fn (core::ptr::unique::Unique<u8>) -> core::ptr::non_null::NonNull<u8>",
+            description: "static fn <core::ptr::non_null::NonNull<T> as core::convert::From<core::ptr::unique::Unique<T>>>::from(core::ptr::unique::Unique<u8>) -> core::ptr::non_null::NonNull<u8>;",
+        },
+        Symbol {
+            line: 213,
+            name: "core::ptr::non_null::NonNull<T>::as_ptr",
+            symbol_type: "fn (core::ptr::non_null::NonNull<u8>) -> *mut u8",
+            description: "static fn core::ptr::non_null::NonNull<T>::as_ptr(core::ptr::non_null::NonNull<u8>) -> *mut u8;",
+        },
+        Symbol {
+            line: 293,
+            name: "core::ptr::non_null::NonNull<T>::cast",
+            symbol_type: "fn (core::ptr::non_null::NonNull<[u8]>) -> core::ptr::non_null::NonNull<u8>",
+            description: "static fn core::ptr::non_null::NonNull<T>::cast(core::ptr::non_null::NonNull<[u8]>) -> core::ptr::non_null::NonNull<u8>;",
+        },
+        Symbol {
+            line: 169,
+            name: "core::ptr::non_null::NonNull<T>::new",
+            symbol_type: "fn (*mut u8) -> core::option::Option<core::ptr::non_null::NonNull<u8>>",
+            description: "static fn core::ptr::non_null::NonNull<T>::new(*mut u8) -> core::option::Option<core::ptr::non_null::NonNull<u8>>;",
+        },
+        Symbol {
+            line: 161,
+            name: "core::ptr::non_null::NonNull<T>::new_unchecked",
+            symbol_type: "fn (*mut u8) -> core::ptr::non_null::NonNull<u8>",
+            description: "static fn core::ptr::non_null::NonNull<T>::new_unchecked(*mut u8) -> core::ptr::non_null::NonNull<u8>;",
+        },
+        Symbol {
+            line: 350,
+            name: "core::ptr::non_null::NonNull<[T]>::len",
+            symbol_type: "fn (core::ptr::non_null::NonNull<[u8]>) -> usize",
+            description: "static fn core::ptr::non_null::NonNull<[T]>::len(core::ptr::non_null::NonNull<[u8]>) -> usize;",
+        },
+        Symbol {
+            line: 326,
+            name: "core::ptr::non_null::NonNull<[T]>::slice_from_raw_parts",
+            symbol_type: "fn (core::ptr::non_null::NonNull<u8>, usize) -> core::ptr::non_null::NonNull<[u8]>",
+            description: "static fn core::ptr::non_null::NonNull<[T]>::slice_from_raw_parts(core::ptr::non_null::NonNull<u8>, usize) -> core::ptr::non_null::NonNull<[u8]>;",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ptr/unique.rs": [
+        Symbol {
+            line: 105,
+            name: "core::ptr::unique::Unique<T>::as_ptr",
+            symbol_type: "fn (core::ptr::unique::Unique<u8>) -> *mut u8",
+            description: "static fn core::ptr::unique::Unique<T>::as_ptr(core::ptr::unique::Unique<u8>) -> *mut u8;",
+        },
+        Symbol {
+            line: 135,
+            name: "core::ptr::unique::Unique<T>::cast",
+            symbol_type: "fn (core::ptr::unique::Unique<u8>) -> core::ptr::unique::Unique<u8>",
+            description: "static fn core::ptr::unique::Unique<T>::cast(core::ptr::unique::Unique<u8>) -> core::ptr::unique::Unique<u8>;",
+        },
+        Symbol {
+            line: 72,
+            name: "core::ptr::unique::Unique<T>::dangling",
+            symbol_type: "fn () -> core::ptr::unique::Unique<u8>",
+            description: "static fn core::ptr::unique::Unique<T>::dangling() -> core::ptr::unique::Unique<u8>;",
+        },
+        Symbol {
+            line: 87,
+            name: "core::ptr::unique::Unique<T>::new_unchecked",
+            symbol_type: "fn (*mut u8) -> core::ptr::unique::Unique<u8>",
+            description: "static fn core::ptr::unique::Unique<T>::new_unchecked(*mut u8) -> core::ptr::unique::Unique<u8>;",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/result.rs": [
+        Symbol {
+            line: 1609,
+            name: "<core::result::Result<T,E> as core::ops::try::Try>::from_error",
+            symbol_type: "fn (core::alloc::AllocError) -> core::result::Result<core::ptr::non_null::NonNull<[u8]>, core::alloc::AllocError>",
+            description: "static fn <core::result::Result<T,E> as core::ops::try::Try>::from_error(core::alloc::AllocError) -> core::result::Result<core::ptr::non_null::NonNull<[u8]>, core::alloc::AllocError>;",
+        },
+        Symbol {
+            line: 1599,
+            name: "<core::result::Result<T,E> as core::ops::try::Try>::into_result",
+            symbol_type: "fn (core::result::Result<core::ptr::non_null::NonNull<u8>, core::alloc::AllocError>) -> core::result::Result<core::ptr::non_null::NonNull<u8>, core::alloc::AllocError>",
+            description: "static fn <core::result::Result<T,E> as core::ops::try::Try>::into_result(core::result::Result<core::ptr::non_null::NonNull<u8>, core::alloc::AllocError>) -> core::result::Result<core::ptr::non_null::NonNull<u8>, core::alloc::AllocError>;",
+        },
+        Symbol {
+            line: 1034,
+            name: "core::result::Result<T,E>::unwrap",
+            symbol_type: "fn (core::result::Result<core::alloc::layout::Layout, core::alloc::layout::LayoutError>) -> core::alloc::layout::Layout",
+            description: "static fn core::result::Result<T,E>::unwrap(core::result::Result<core::alloc::layout::Layout, core::alloc::layout::LayoutError>) -> core::alloc::layout::Layout;",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/mod.rs": [
+        Symbol {
+            line: 431,
+            name: "core::slice::<impl [T]>::as_ptr",
+            symbol_type: "fn (&[u8]) -> *mut u8",
+            description: "static fn core::slice::<impl [T]>::as_ptr(&[u8]) -> *mut u8;",
+        },
+        Symbol {
+            line: 101,
+            name: "core::slice::<impl [T]>::len",
+            symbol_type: "fn (&[u8]) -> usize",
+            description: "static fn core::slice::<impl [T]>::len(&[u8]) -> usize;",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/slice/raw.rs": [
+        Symbol {
+            line: 88,
+            name: "core::slice::raw::from_raw_parts",
+            symbol_type: "fn (*mut u8, usize) -> &[u8]",
+            description: "static fn core::slice::raw::from_raw_parts(*mut u8, usize) -> &[u8];",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/str/converts.rs": [
+        Symbol {
+            line: 161,
+            name: "core::str::converts::from_utf8_unchecked",
+            symbol_type: "fn (&[u8]) -> &str",
+            description: "static fn core::str::converts::from_utf8_unchecked(&[u8]) -> &str;",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/time.rs": [
+        Symbol {
+            line: 197,
+            name: "core::time::Duration::from_secs",
+            symbol_type: "fn (u64) -> core::time::Duration",
+            description: "static fn core::time::Duration::from_secs(u64) -> core::time::Duration;",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/process.rs": [
+        Symbol {
+            line: 1858,
+            name: "<() as std::process::Termination>::report",
+            symbol_type: "fn (()) -> i32",
+            description: "static fn <() as std::process::Termination>::report(()) -> i32;",
+        },
+        Symbol {
+            line: 1892,
+            name: "<std::process::ExitCode as std::process::Termination>::report",
+            symbol_type: "fn (std::process::ExitCode) -> i32",
+            description: "static fn <std::process::ExitCode as std::process::Termination>::report(std::process::ExitCode) -> i32;",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/rt.rs": [
+        Symbol {
+            line: 60,
+            name: "std::rt::lang_start",
+            symbol_type: "fn (*mut fn (), isize, *mut *mut u8) -> isize",
+            description: "static fn std::rt::lang_start(*mut fn (), isize, *mut *mut u8) -> isize;",
+        },
+        Symbol {
+            line: 66,
+            name: "std::rt::lang_start::{{closure}}",
+            symbol_type: "fn () -> i32",
+            description: "static fn std::rt::lang_start::{{closure}}() -> i32;",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/unix/process/process_common.rs": [
+        Symbol {
+            line: 426,
+            name: "std::sys::unix::process::process_common::ExitCode::as_i32",
+            symbol_type: "fn (*mut std::sys::unix::process::process_common::ExitCode) -> i32",
+            description: "static fn std::sys::unix::process::process_common::ExitCode::as_i32(*mut std::sys::unix::process::process_common::ExitCode) -> i32;",
+        },
+    ],
+    "/home/daniel/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys_common/backtrace.rs": [
+        Symbol {
+            line: 121,
+            name: "std::sys_common::backtrace::__rust_begin_short_backtrace",
+            symbol_type: "fn (*mut fn ())",
+            description: "static fn std::sys_common::backtrace::__rust_begin_short_backtrace(*mut fn ());",
+        },
+    ],
+    "/rustc/07e0e2ec268c140e607e1ac7f49f145612d0f597/library/alloc/src/alloc.rs": [
+        Symbol {
+            line: 329,
+            name: "alloc::alloc::box_free",
+            symbol_type: "fn ()",
+            description: "static fn alloc::alloc::box_free();",
+        },
+    ],
+    "/rustc/07e0e2ec268c140e607e1ac7f49f145612d0f597/library/alloc/src/collections/btree/map.rs": [
+        Symbol {
+            line: 1445,
+            name: "<alloc::collections::btree::map::Dropper<K,V> as core::ops::drop::Drop>::drop::next_or_end",
+            symbol_type: "fn ()",
+            description: "static fn <alloc::collections::btree::map::Dropper<K,V> as core::ops::drop::Drop>::drop::next_or_end();",
+        },
+    ],
+    "/rustc/07e0e2ec268c140e607e1ac7f49f145612d0f597/library/alloc/src/raw_vec.rs": [
+        Symbol {
+            line: 468,
+            name: "alloc::raw_vec::finish_grow",
+            symbol_type: "fn ()",
+            description: "static fn alloc::raw_vec::finish_grow();",
+        },
+    ],
+    "/rustc/07e0e2ec268c140e607e1ac7f49f145612d0f597/library/alloc/src/string.rs": [
+        Symbol {
+            line: 2028,
+            name: "<alloc::string::String as core::fmt::Debug>::fmt",
+            symbol_type: "fn ()",
+            description: "static fn <alloc::string::String as core::fmt::Debug>::fmt();",
+        },
+        Symbol {
+            line: 2020,
+            name: "<alloc::string::String as core::fmt::Display>::fmt",
+            symbol_type: "fn ()",
+            description: "static fn <alloc::string::String as core::fmt::Display>::fmt();",
+        },
+    ],
+    "/rustc/07e0e2ec268c140e607e1ac7f49f145612d0f597/library/alloc/src/sync.rs": [
+        Symbol {
+            line: 1036,
+            name: "alloc::sync::Arc<T>::drop_slow",
+            symbol_type: "fn ()",
+            description: "static fn alloc::sync::Arc<T>::drop_slow();",
+        },
+    ],
+    "/rustc/07e0e2ec268c140e607e1ac7f49f145612d0f597/library/alloc/src/vec/mod.rs": [
+        Symbol {
+            line: 1295,
+            name: "alloc::vec::Vec<T,A>::insert",
+            symbol_type: "fn ()",
+            description: "static fn alloc::vec::Vec<T,A>::insert();",
+        },
+    ],
+    "/rustc/07e0e2ec268c140e607e1ac7f49f145612d0f597/library/core/src/any.rs": [
+        Symbol {
+            line: 132,
+            name: "<T as core::any::Any>::type_id",
+            symbol_type: "fn ()",
+            description: "static fn <T as core::any::Any>::type_id();",
+        },
+    ],
+    "/rustc/07e0e2ec268c140e607e1ac7f49f145612d0f597/library/core/src/fmt/mod.rs": [
+        Symbol {
+            line: 2010,
+            name: "<&T as core::fmt::Debug>::fmt",
+            symbol_type: "fn ()",
+            description: "static fn <&T as core::fmt::Debug>::fmt();",
+        },
+        Symbol {
+            line: 2010,
+            name: "<&T as core::fmt::Display>::fmt",
+            symbol_type: "fn ()",
+            description: "static fn <&T as core::fmt::Display>::fmt();",
+        },
+        Symbol {
+            line: 2010,
+            name: "<&T as core::fmt::UpperHex>::fmt",
+            symbol_type: "fn ()",
+            description: "static fn <&T as core::fmt::UpperHex>::fmt();",
+        },
+        Symbol {
+            line: 192,
+            name: "<&mut W as core::fmt::Write>::write_char",
+            symbol_type: "fn ()",
+            description: "static fn <&mut W as core::fmt::Write>::write_char();",
+        },
+        Symbol {
+            line: 196,
+            name: "<&mut W as core::fmt::Write>::write_fmt",
+            symbol_type: "fn ()",
+            description: "static fn <&mut W as core::fmt::Write>::write_fmt();",
+        },
+        Symbol {
+            line: 188,
+            name: "<&mut W as core::fmt::Write>::write_str",
+            symbol_type: "fn ()",
+            description: "static fn <&mut W as core::fmt::Write>::write_str();",
+        },
+        Symbol {
+            line: 2160,
+            name: "<*mut T as core::fmt::Debug>::fmt",
+            symbol_type: "fn ()",
+            description: "static fn <*mut T as core::fmt::Debug>::fmt();",
+        },
+        Symbol {
+            line: 158,
+            name: "core::fmt::Write::write_char",
+            symbol_type: "fn ()",
+            description: "static fn core::fmt::Write::write_char();",
+        },
+        Symbol {
+            line: 181,
+            name: "core::fmt::Write::write_fmt",
+            symbol_type: "fn ()",
+            description: "static fn core::fmt::Write::write_fmt();",
+        },
+    ],
+    "/rustc/07e0e2ec268c140e607e1ac7f49f145612d0f597/library/core/src/fmt/num.rs": [
+        Symbol {
+            line: 185,
+            name: "core::fmt::num::<impl core::fmt::Debug for i32>::fmt",
+            symbol_type: "fn ()",
+            description: "static fn core::fmt::num::<impl core::fmt::Debug for i32>::fmt();",
+        },
+    ],
+    "/rustc/07e0e2ec268c140e607e1ac7f49f145612d0f597/library/core/src/ops/function.rs": [
+        Symbol {
+            line: 227,
+            name: "core::ops::function::FnOnce::call_once{{vtable-shim}}",
+            symbol_type: "fn ()",
+            description: "static fn core::ops::function::FnOnce::call_once{{vtable-shim}}();",
+        },
+    ],
+    "/rustc/07e0e2ec268c140e607e1ac7f49f145612d0f597/library/core/src/option.rs": [
+        Symbol {
+            line: 383,
+            name: "core::option::Option<T>::unwrap",
+            symbol_type: "fn ()",
+            description: "static fn core::option::Option<T>::unwrap();",
+        },
+    ],
+    "/rustc/07e0e2ec268c140e607e1ac7f49f145612d0f597/library/core/src/panicking.rs": [
+        Symbol {
+            line: 107,
+            name: "core::panicking::assert_failed",
+            symbol_type: "fn ()",
+            description: "static fn core::panicking::assert_failed();",
+        },
+    ],
+    "/rustc/07e0e2ec268c140e607e1ac7f49f145612d0f597/library/core/src/ptr/mod.rs": [
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::backtrace_rs::Bomb>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::backtrace_rs::Bomb>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::backtrace_rs::print::BacktraceFrameFmt>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::backtrace_rs::print::BacktraceFrameFmt>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::backtrace_rs::symbolize::gimli::Library>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::backtrace_rs::symbolize::gimli::Library>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::backtrace_rs::symbolize::gimli::Mapping>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::backtrace_rs::symbolize::gimli::Mapping>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::backtrace_rs::symbolize::gimli::elf::Object>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::backtrace_rs::symbolize::gimli::elf::Object>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::backtrace_rs::symbolize::gimli::mmap::Mmap>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::backtrace_rs::symbolize::gimli::mmap::Mmap>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::backtrace_rs::symbolize::gimli::stash::Stash>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::backtrace_rs::symbolize::gimli::stash::Stash>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::error::<impl core::convert::From<alloc::string::String> for alloc::boxed::Box<dyn std::error::Error+core::marker::Sync+core::marker::Send>>::from::StringError>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::error::<impl core::convert::From<alloc::string::String> for alloc::boxed::Box<dyn std::error::Error+core::marker::Sync+core::marker::Send>>::from::StringError>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::ffi::c_str::CString>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::ffi::c_str::CString>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::ffi::c_str::NulError>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::ffi::c_str::NulError>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::fs::File>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::fs::File>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::io::Write::write_fmt::Adaptor<&mut [u8]>>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::io::Write::write_fmt::Adaptor<&mut [u8]>>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::io::buffered::bufwriter::BufWriter<W>::flush_buf::BufGuard>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::io::buffered::bufwriter::BufWriter<W>::flush_buf::BufGuard>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::io::buffered::linewriter::LineWriter<std::io::stdio::StdoutRaw>>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::io::buffered::linewriter::LineWriter<std::io::stdio::StdoutRaw>>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::io::error::Error>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::io::error::Error>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::io::stdio::StdinLock>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::io::stdio::StdinLock>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::io::stdio::set_output_capture::{{closure}}>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::io::stdio::set_output_capture::{{closure}}>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::panicking::begin_panic_handler::PanicPayload>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::panicking::begin_panic_handler::PanicPayload>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::sync::once::Waiter>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::sync::once::Waiter>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::sync::once::WaiterQueue>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::sync::once::WaiterQueue>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::sys::unix::mutex::PthreadMutexAttr>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::sys::unix::mutex::PthreadMutexAttr>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::sys_common::backtrace::_print_fmt::{{closure}}>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::sys_common::backtrace::_print_fmt::{{closure}}>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::sys_common::mutex::StaticMutexGuard>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::sys_common::mutex::StaticMutexGuard>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::sys_common::remutex::ReentrantMutexGuard<core::cell::RefCell<std::io::buffered::linewriter::LineWriter<std::io::stdio::StdoutRaw>>>>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::sys_common::remutex::ReentrantMutexGuard<core::cell::RefCell<std::io::buffered::linewriter::LineWriter<std::io::stdio::StdoutRaw>>>>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::sys_common::rwlock::RWLockReadGuard>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::sys_common::rwlock::RWLockReadGuard>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::sys_common::thread_info::set::{{closure}}>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::sys_common::thread_info::set::{{closure}}>();",
+        },
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<std::thread::Thread>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<std::thread::Thread>();",
+        },
+    ],
+    "/rustc/07e0e2ec268c140e607e1ac7f49f145612d0f597/library/core/src/slice/sort.rs": [
+        Symbol {
+            line: 556,
+            name: "core::slice::sort::break_patterns",
+            symbol_type: "fn ()",
+            description: "static fn core::slice::sort::break_patterns();",
+        },
+        Symbol {
+            line: 184,
+            name: "core::slice::sort::heapsort",
+            symbol_type: "fn ()",
+            description: "static fn core::slice::sort::heapsort();",
+        },
+        Symbol {
+            line: 126,
+            name: "core::slice::sort::partial_insertion_sort",
+            symbol_type: "fn ()",
+            description: "static fn core::slice::sort::partial_insertion_sort();",
+        },
+        Symbol {
+            line: 670,
+            name: "core::slice::sort::recurse",
+            symbol_type: "fn ()",
+            description: "static fn core::slice::sort::recurse();",
+        },
+    ],
+    "/rustc/07e0e2ec268c140e607e1ac7f49f145612d0f597/library/core/src/str/mod.rs": [
+        Symbol {
+            line: 935,
+            name: "core::str::<impl str>::contains",
+            symbol_type: "fn ()",
+            description: "static fn core::str::<impl str>::contains();",
+        },
+    ],
+    "/rustc/07e0e2ec268c140e607e1ac7f49f145612d0f597/library/core/src/str/pattern.rs": [
+        Symbol {
+            line: 403,
+            name: "<core::str::pattern::CharSearcher as core::str::pattern::Searcher>::next_match",
+            symbol_type: "fn ()",
+            description: "static fn <core::str::pattern::CharSearcher as core::str::pattern::Searcher>::next_match();",
+        },
+    ],
+    "library/alloc/src/alloc.rs": [
+        Symbol {
+            line: 391,
+            name: "alloc::alloc::__alloc_error_handler::__rg_oom",
+            symbol_type: "fn ()",
+            description: "fn alloc::alloc::__alloc_error_handler::__rg_oom();",
+        },
+        Symbol {
+            line: 364,
+            name: "alloc::alloc::handle_alloc_error",
+            symbol_type: "fn ()",
+            description: "fn alloc::alloc::handle_alloc_error();",
+        },
+    ],
+    "library/alloc/src/collections/btree/node.rs": [
+        Symbol {
+            line: 817,
+            name: "alloc::collections::btree::node::splitpoint",
+            symbol_type: "fn ()",
+            description: "fn alloc::collections::btree::node::splitpoint();",
+        },
+    ],
+    "library/alloc/src/raw_vec.rs": [
+        Symbol {
+            line: 535,
+            name: "alloc::raw_vec::capacity_overflow",
+            symbol_type: "fn ()",
+            description: "fn alloc::raw_vec::capacity_overflow();",
+        },
+        Symbol {
+            line: 468,
+            name: "alloc::raw_vec::finish_grow",
+            symbol_type: "fn ()",
+            description: "static fn alloc::raw_vec::finish_grow();",
+        },
+    ],
+    "library/alloc/src/string.rs": [
+        Symbol {
+            line: 2510,
+            name: "alloc::string::<impl core::convert::From<alloc::string::String> for alloc::vec::Vec<u8>>::from",
+            symbol_type: "fn ()",
+            description: "fn alloc::string::<impl core::convert::From<alloc::string::String> for alloc::vec::Vec<u8>>::from();",
+        },
+        Symbol {
+            line: 539,
+            name: "alloc::string::String::from_utf8_lossy",
+            symbol_type: "fn ()",
+            description: "fn alloc::string::String::from_utf8_lossy();",
+        },
+    ],
+    "library/core/src/alloc/layout.rs": [
+        Symbol {
+            line: 412,
+            name: "<core::alloc::layout::LayoutError as core::fmt::Debug>::fmt",
+            symbol_type: "fn ()",
+            description: "fn <core::alloc::layout::LayoutError as core::fmt::Debug>::fmt();",
+        },
+    ],
+    "library/core/src/any.rs": [
+        Symbol {
+            line: 132,
+            name: "<T as core::any::Any>::type_id",
+            symbol_type: "fn ()",
+            description: "static fn <T as core::any::Any>::type_id();",
+        },
+    ],
+    "library/core/src/cell.rs": [
+        Symbol {
+            line: 597,
+            name: "<core::cell::BorrowError as core::fmt::Debug>::fmt",
+            symbol_type: "fn ()",
+            description: "fn <core::cell::BorrowError as core::fmt::Debug>::fmt();",
+        },
+        Symbol {
+            line: 624,
+            name: "<core::cell::BorrowMutError as core::fmt::Debug>::fmt",
+            symbol_type: "fn ()",
+            description: "fn <core::cell::BorrowMutError as core::fmt::Debug>::fmt();",
+        },
+    ],
+    "library/core/src/char/mod.rs": [
+        Symbol {
+            line: 352,
+            name: "<core::char::EscapeDebug as core::iter::traits::iterator::Iterator>::next",
+            symbol_type: "fn ()",
+            description: "fn <core::char::EscapeDebug as core::iter::traits::iterator::Iterator>::next();",
+        },
+    ],
+    "library/core/src/fmt/builders.rs": [
+        Symbol {
+            line: 34,
+            name: "<core::fmt::builders::PadAdapter as core::fmt::Write>::write_str",
+            symbol_type: "fn ()",
+            description: "fn <core::fmt::builders::PadAdapter as core::fmt::Write>::write_str();",
+        },
+        Symbol {
+            line: 684,
+            name: "core::fmt::builders::DebugList::finish",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::builders::DebugList::finish();",
+        },
+        Symbol {
+            line: 491,
+            name: "core::fmt::builders::DebugSet::entry",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::builders::DebugSet::entry();",
+        },
+        Symbol {
+            line: 136,
+            name: "core::fmt::builders::DebugStruct::field",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::builders::DebugStruct::field();",
+        },
+        Symbol {
+            line: 246,
+            name: "core::fmt::builders::DebugStruct::finish",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::builders::DebugStruct::finish();",
+        },
+        Symbol {
+            line: 331,
+            name: "core::fmt::builders::DebugTuple::field",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::builders::DebugTuple::field();",
+        },
+        Symbol {
+            line: 378,
+            name: "core::fmt::builders::DebugTuple::finish",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::builders::DebugTuple::finish();",
+        },
+        Symbol {
+            line: 402,
+            name: "core::fmt::builders::DebugInner::entry",
+            symbol_type: "fn ()",
+            description: "static fn core::fmt::builders::DebugInner::entry();",
+        },
+    ],
+    "library/core/src/fmt/mod.rs": [
+        Symbol {
+            line: 2081,
+            name: "<char as core::fmt::Debug>::fmt",
+            symbol_type: "fn ()",
+            description: "fn <char as core::fmt::Debug>::fmt();",
+        },
+        Symbol {
+            line: 2092,
+            name: "<char as core::fmt::Display>::fmt",
+            symbol_type: "fn ()",
+            description: "fn <char as core::fmt::Display>::fmt();",
+        },
+        Symbol {
+            line: 442,
+            name: "<core::fmt::Arguments as core::fmt::Display>::fmt",
+            symbol_type: "fn ()",
+            description: "fn <core::fmt::Arguments as core::fmt::Display>::fmt();",
+        },
+        Symbol {
+            line: 1987,
+            name: "<core::fmt::Formatter as core::fmt::Write>::write_char",
+            symbol_type: "fn ()",
+            description: "fn <core::fmt::Formatter as core::fmt::Write>::write_char();",
+        },
+        Symbol {
+            line: 2053,
+            name: "<str as core::fmt::Debug>::fmt",
+            symbol_type: "fn ()",
+            description: "fn <str as core::fmt::Debug>::fmt();",
+        },
+        Symbol {
+            line: 2074,
+            name: "<str as core::fmt::Display>::fmt",
+            symbol_type: "fn ()",
+            description: "fn <str as core::fmt::Display>::fmt();",
+        },
+        Symbol {
+            line: 281,
+            name: "core::fmt::ArgumentV1::from_usize",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::ArgumentV1::from_usize();",
+        },
+        Symbol {
+            line: 1762,
+            name: "core::fmt::Formatter::alternate",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::Formatter::alternate();",
+        },
+        Symbol {
+            line: 1892,
+            name: "core::fmt::Formatter::debug_list",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::Formatter::debug_list();",
+        },
+        Symbol {
+            line: 1793,
+            name: "core::fmt::Formatter::debug_lower_hex",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::Formatter::debug_lower_hex();",
+        },
+        Symbol {
+            line: 1838,
+            name: "core::fmt::Formatter::debug_struct",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::Formatter::debug_struct();",
+        },
+        Symbol {
+            line: 1869,
+            name: "core::fmt::Formatter::debug_tuple",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::Formatter::debug_tuple();",
+        },
+        Symbol {
+            line: 1797,
+            name: "core::fmt::Formatter::debug_upper_hex",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::Formatter::debug_upper_hex();",
+        },
+        Symbol {
+            line: 1332,
+            name: "core::fmt::Formatter::pad",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::Formatter::pad();",
+        },
+        Symbol {
+            line: 1238,
+            name: "core::fmt::Formatter::pad_integral",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::Formatter::pad_integral();",
+        },
+        Symbol {
+            line: 1534,
+            name: "core::fmt::Formatter::write_fmt",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::Formatter::write_fmt();",
+        },
+        Symbol {
+            line: 1511,
+            name: "core::fmt::Formatter::write_str",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::Formatter::write_str();",
+        },
+        Symbol {
+            line: 1075,
+            name: "core::fmt::write",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::write();",
+        },
+        Symbol {
+            line: 2010,
+            name: "<&T as core::fmt::Debug>::fmt",
+            symbol_type: "fn ()",
+            description: "static fn <&T as core::fmt::Debug>::fmt();",
+        },
+        Symbol {
+            line: 2010,
+            name: "<&T as core::fmt::Display>::fmt",
+            symbol_type: "fn ()",
+            description: "static fn <&T as core::fmt::Display>::fmt();",
+        },
+        Symbol {
+            line: 192,
+            name: "<&mut W as core::fmt::Write>::write_char",
+            symbol_type: "fn ()",
+            description: "static fn <&mut W as core::fmt::Write>::write_char();",
+        },
+        Symbol {
+            line: 196,
+            name: "<&mut W as core::fmt::Write>::write_fmt",
+            symbol_type: "fn ()",
+            description: "static fn <&mut W as core::fmt::Write>::write_fmt();",
+        },
+        Symbol {
+            line: 188,
+            name: "<&mut W as core::fmt::Write>::write_str",
+            symbol_type: "fn ()",
+            description: "static fn <&mut W as core::fmt::Write>::write_str();",
+        },
+        Symbol {
+            line: 1259,
+            name: "core::fmt::Formatter::pad_integral::write_prefix",
+            symbol_type: "fn ()",
+            description: "static fn core::fmt::Formatter::pad_integral::write_prefix();",
+        },
+        Symbol {
+            line: 158,
+            name: "core::fmt::Write::write_char",
+            symbol_type: "fn ()",
+            description: "static fn core::fmt::Write::write_char();",
+        },
+        Symbol {
+            line: 181,
+            name: "core::fmt::Write::write_fmt",
+            symbol_type: "fn ()",
+            description: "static fn core::fmt::Write::write_fmt();",
+        },
+    ],
+    "library/core/src/fmt/num.rs": [
+        Symbol {
+            line: 154,
+            name: "core::fmt::num::<impl core::fmt::LowerHex for i32>::fmt",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::num::<impl core::fmt::LowerHex for i32>::fmt();",
+        },
+        Symbol {
+            line: 154,
+            name: "core::fmt::num::<impl core::fmt::LowerHex for i64>::fmt",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::num::<impl core::fmt::LowerHex for i64>::fmt();",
+        },
+        Symbol {
+            line: 154,
+            name: "core::fmt::num::<impl core::fmt::LowerHex for i8>::fmt",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::num::<impl core::fmt::LowerHex for i8>::fmt();",
+        },
+        Symbol {
+            line: 154,
+            name: "core::fmt::num::<impl core::fmt::UpperHex for i32>::fmt",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::num::<impl core::fmt::UpperHex for i32>::fmt();",
+        },
+        Symbol {
+            line: 154,
+            name: "core::fmt::num::<impl core::fmt::UpperHex for i64>::fmt",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::num::<impl core::fmt::UpperHex for i64>::fmt();",
+        },
+        Symbol {
+            line: 154,
+            name: "core::fmt::num::<impl core::fmt::UpperHex for i8>::fmt",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::num::<impl core::fmt::UpperHex for i8>::fmt();",
+        },
+        Symbol {
+            line: 279,
+            name: "core::fmt::num::imp::<impl core::fmt::Display for i32>::fmt",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::num::imp::<impl core::fmt::Display for i32>::fmt();",
+        },
+        Symbol {
+            line: 279,
+            name: "core::fmt::num::imp::<impl core::fmt::Display for u32>::fmt",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::num::imp::<impl core::fmt::Display for u32>::fmt();",
+        },
+        Symbol {
+            line: 279,
+            name: "core::fmt::num::imp::<impl core::fmt::Display for u64>::fmt",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::num::imp::<impl core::fmt::Display for u64>::fmt();",
+        },
+        Symbol {
+            line: 279,
+            name: "core::fmt::num::imp::<impl core::fmt::Display for u8>::fmt",
+            symbol_type: "fn ()",
+            description: "fn core::fmt::num::imp::<impl core::fmt::Display for u8>::fmt();",
+        },
+        Symbol {
+            line: 185,
+            name: "core::fmt::num::<impl core::fmt::Debug for usize>::fmt",
+            symbol_type: "fn ()",
+            description: "static fn core::fmt::num::<impl core::fmt::Debug for usize>::fmt();",
+        },
+    ],
+    "library/core/src/num/error.rs": [
+        Symbol {
+            line: 66,
+            name: "<core::num::error::ParseIntError as core::fmt::Debug>::fmt",
+            symbol_type: "fn ()",
+            description: "fn <core::num::error::ParseIntError as core::fmt::Debug>::fmt();",
+        },
+    ],
+    "library/core/src/num/mod.rs": [
+        Symbol {
+            line: 785,
+            name: "core::num::<impl core::str::traits::FromStr for u64>::from_str",
+            symbol_type: "fn ()",
+            description: "fn core::num::<impl core::str::traits::FromStr for u64>::from_str();",
+        },
+        Symbol {
+            line: 817,
+            name: "core::num::from_str_radix",
+            symbol_type: "fn ()",
+            description: "static fn core::num::from_str_radix();",
+        },
+    ],
+    "library/core/src/num/uint_macros.rs": [
+        Symbol {
+            line: 64,
+            name: "core::num::<impl u32>::from_str_radix",
+            symbol_type: "fn ()",
+            description: "fn core::num::<impl u32>::from_str_radix();",
+        },
+    ],
+    "library/core/src/ops/function.rs": [
+        Symbol {
+            line: 227,
+            name: "core::ops::function::FnOnce::call_once",
+            symbol_type: "fn ()",
+            description: "static fn core::ops::function::FnOnce::call_once();",
+        },
+    ],
+    "library/core/src/ops/range.rs": [
+        Symbol {
+            line: 91,
+            name: "<core::ops::range::Range<Idx> as core::fmt::Debug>::fmt",
+            symbol_type: "fn ()",
+            description: "static fn <core::ops::range::Range<Idx> as core::fmt::Debug>::fmt();",
+        },
+    ],
+    "library/core/src/option.rs": [
+        Symbol {
+            line: 1320,
+            name: "core::option::expect_failed",
+            symbol_type: "fn ()",
+            description: "fn core::option::expect_failed();",
+        },
+        Symbol {
+            line: 1328,
+            name: "core::option::expect_none_failed",
+            symbol_type: "fn ()",
+            description: "fn core::option::expect_none_failed();",
+        },
+    ],
+    "library/core/src/panic.rs": [
+        Symbol {
+            line: 365,
+            name: "<core::panic::Location as core::fmt::Display>::fmt",
+            symbol_type: "fn ()",
+            description: "fn <core::panic::Location as core::fmt::Display>::fmt();",
+        },
+        Symbol {
+            line: 264,
+            name: "core::panic::Location::caller",
+            symbol_type: "fn ()",
+            description: "fn core::panic::Location::caller();",
+        },
+        Symbol {
+            line: 159,
+            name: "core::panic::PanicInfo::location",
+            symbol_type: "fn ()",
+            description: "fn core::panic::PanicInfo::location();",
+        },
+        Symbol {
+            line: 130,
+            name: "core::panic::PanicInfo::message",
+            symbol_type: "fn ()",
+            description: "fn core::panic::PanicInfo::message();",
+        },
+        Symbol {
+            line: 122,
+            name: "core::panic::PanicInfo::payload",
+            symbol_type: "fn ()",
+            description: "fn core::panic::PanicInfo::payload();",
+        },
+    ],
+    "library/core/src/panicking.rs": [
+        Symbol {
+            line: 141,
+            name: "core::panicking::assert_failed_inner",
+            symbol_type: "fn ()",
+            description: "fn core::panicking::assert_failed_inner();",
+        },
+        Symbol {
+            line: 39,
+            name: "core::panicking::panic",
+            symbol_type: "fn ()",
+            description: "fn core::panicking::panic();",
+        },
+        Symbol {
+            line: 64,
+            name: "core::panicking::panic_bounds_check",
+            symbol_type: "fn ()",
+            description: "fn core::panicking::panic_bounds_check();",
+        },
+        Symbol {
+            line: 77,
+            name: "core::panicking::panic_fmt",
+            symbol_type: "fn ()",
+            description: "fn core::panicking::panic_fmt();",
+        },
+    ],
+    "library/core/src/ptr/mod.rs": [
+        Symbol {
+            line: 187,
+            name: "core::ptr::drop_in_place<&core::iter::adapters::copied::Copied<core::slice::iter::Iter<u8>>>",
+            symbol_type: "fn ()",
+            description: "static fn core::ptr::drop_in_place<&core::iter::adapters::copied::Copied<core::slice::iter::Iter<u8>>>();",
+        },
+    ],
+    "library/core/src/slice/index.rs": [
+        Symbol {
+            line: 40,
+            name: "core::slice::index::slice_end_index_len_fail",
+            symbol_type: "fn ()",
+            description: "fn core::slice::index::slice_end_index_len_fail();",
+        },
+        Symbol {
+            line: 47,
+            name: "core::slice::index::slice_index_order_fail",
+            symbol_type: "fn ()",
+            description: "fn core::slice::index::slice_index_order_fail();",
+        },
+        Symbol {
+            line: 33,
+            name: "core::slice::index::slice_start_index_len_fail",
+            symbol_type: "fn ()",
+            description: "fn core::slice::index::slice_start_index_len_fail();",
+        },
+    ],
+    "library/core/src/slice/memchr.rs": [
+        Symbol {
+            line: 50,
+            name: "core::slice::memchr::memchr_general_case",
+            symbol_type: "fn ()",
+            description: "fn core::slice::memchr::memchr_general_case();",
+        },
+    ],
+    "library/core/src/slice/mod.rs": [
+        Symbol {
+            line: 3040,
+            name: "core::slice::<impl [T]>::copy_from_slice::len_mismatch_fail",
+            symbol_type: "fn ()",
+            description: "fn core::slice::<impl [T]>::copy_from_slice::len_mismatch_fail();",
+        },
+    ],
+    "library/core/src/str/converts.rs": [
+        Symbol {
+            line: 85,
+            name: "core::str::converts::from_utf8",
+            symbol_type: "fn ()",
+            description: "fn core::str::converts::from_utf8();",
+        },
+    ],
+    "library/core/src/str/error.rs": [
+        Symbol {
+            line: 44,
+            name: "<core::str::error::Utf8Error as core::fmt::Debug>::fmt",
+            symbol_type: "fn ()",
+            description: "fn <core::str::error::Utf8Error as core::fmt::Debug>::fmt();",
+        },
+    ],
+    "library/core/src/str/lossy.rs": [
+        Symbol {
+            line: 147,
+            name: "<core::str::lossy::Utf8Lossy as core::fmt::Display>::fmt",
+            symbol_type: "fn ()",
+            description: "fn <core::str::lossy::Utf8Lossy as core::fmt::Display>::fmt();",
+        },
+        Symbol {
+            line: 50,
+            name: "<core::str::lossy::Utf8LossyChunksIter as core::iter::traits::iterator::Iterator>::next",
+            symbol_type: "fn ()",
+            description: "fn <core::str::lossy::Utf8LossyChunksIter as core::iter::traits::iterator::Iterator>::next();",
+        },
+        Symbol {
+            line: 24,
+            name: "core::str::lossy::Utf8Lossy::chunks",
+            symbol_type: "fn ()",
+            description: "fn core::str::lossy::Utf8Lossy::chunks();",
+        },
+        Symbol {
+            line: 19,
+            name: "core::str::lossy::Utf8Lossy::from_bytes",
+            symbol_type: "fn ()",
+            description: "fn core::str::lossy::Utf8Lossy::from_bytes();",
+        },
+    ],
+    "library/core/src/str/mod.rs": [
+        Symbol {
+            line: 83,
+            name: "core::str::slice_error_fail",
+            symbol_type: "fn ()",
+            description: "fn core::str::slice_error_fail();",
+        },
+    ],
+    "library/core/src/str/pattern.rs": [
+        Symbol {
+            line: 934,
+            name: "core::str::pattern::StrSearcher::new",
+            symbol_type: "fn ()",
+            description: "fn core::str::pattern::StrSearcher::new();",
+        },
+    ],
+    "library/core/src/str/traits.rs": [
+        Symbol {
+            line: 82,
+            name: "core::str::traits::str_index_overflow_fail",
+            symbol_type: "fn ()",
+            description: "fn core::str::traits::str_index_overflow_fail();",
+        },
+    ],
+    "library/core/src/unicode/printable.rs": [
+        Symbol {
+            line: 39,
+            name: "core::unicode::printable::is_printable",
+            symbol_type: "fn ()",
+            description: "fn core::unicode::printable::is_printable();",
+        },
+    ],
+    "library/core/src/unicode/unicode_data.rs": [
+        Symbol {
+            line: 260,
+            name: "core::unicode::unicode_data::cc::lookup",
+            symbol_type: "fn ()",
+            description: "fn core::unicode::unicode_data::cc::lookup();",
+        },
+        Symbol {
+            line: 304,
+            name: "core::unicode::unicode_data::grapheme_extend::lookup",
+            symbol_type: "fn ()",
+            description: "fn core::unicode::unicode_data::grapheme_extend::lookup();",
+        },
+    ],
+    "library/panic_unwind/src/dwarf/eh.rs": [
+        Symbol {
+            line: 144,
+            name: "panic_unwind::dwarf::eh::read_encoded_pointer",
+            symbol_type: "fn ()",
+            description: "static fn panic_unwind::dwarf::eh::read_encoded_pointer();",
+        },
+    ],
+    "library/panic_unwind/src/gcc.rs": [
+        Symbol {
+            line: 282,
+            name: "panic_unwind::real_imp::rust_eh_personality",
+            symbol_type: "fn ()",
+            description: "fn panic_unwind::real_imp::rust_eh_personality();",
+        },
+        Symbol {
+            line: 308,
+            name: "panic_unwind::real_imp::find_eh_action::{{closure}}",
+            symbol_type: "fn ()",
+            description: "static fn panic_unwind::real_imp::find_eh_action::{{closure}}();",
+        },
+        Symbol {
+            line: 64,
+            name: "panic_unwind::real_imp::panic::exception_cleanup",
+            symbol_type: "fn ()",
+            description: "static fn panic_unwind::real_imp::panic::exception_cleanup();",
+        },
+    ],
+    "library/panic_unwind/src/lib.rs": [
+        Symbol {
+            line: 99,
+            name: "panic_unwind::__rust_panic_cleanup",
+            symbol_type: "fn ()",
+            description: "fn panic_unwind::__rust_panic_cleanup();",
+        },
+        Symbol {
+            line: 107,
+            name: "panic_unwind::__rust_start_panic",
+            symbol_type: "fn ()",
+            description: "fn panic_unwind::__rust_start_panic();",
+        },
+    ],
+    "library/std/src/../../backtrace/src/backtrace/libunwind.rs": [
+        Symbol {
+            line: 92,
+            name: "std::backtrace_rs::backtrace::libunwind::trace::trace_fn",
+            symbol_type: "fn ()",
+            description: "static fn std::backtrace_rs::backtrace::libunwind::trace::trace_fn();",
+        },
+    ],
+    "library/std/src/../../backtrace/src/print.rs": [
+        Symbol {
+            line: 181,
+            name: "std::backtrace_rs::print::BacktraceFrameFmt::print_raw_with_column",
+            symbol_type: "fn ()",
+            description: "static fn std::backtrace_rs::print::BacktraceFrameFmt::print_raw_with_column();",
+        },
+    ],
+    "library/std/src/../../backtrace/src/symbolize/gimli/elf.rs": [
+        Symbol {
+            line: 91,
+            name: "std::backtrace_rs::symbolize::gimli::elf::Object::section",
+            symbol_type: "fn ()",
+            description: "static fn std::backtrace_rs::symbolize::gimli::elf::Object::section();",
+        },
+    ],
+    "library/std/src/../../backtrace/src/symbolize/gimli/stash.rs": [
+        Symbol {
+            line: 22,
+            name: "std::backtrace_rs::symbolize::gimli::stash::Stash::allocate",
+            symbol_type: "fn ()",
+            description: "static fn std::backtrace_rs::symbolize::gimli::stash::Stash::allocate();",
+        },
+    ],
+    "library/std/src/../../backtrace/src/symbolize/gimli.rs": [
+        Symbol {
+            line: 385,
+            name: "std::backtrace_rs::symbolize::gimli::callback",
+            symbol_type: "fn ()",
+            description: "static fn std::backtrace_rs::symbolize::gimli::callback();",
+        },
+        Symbol {
+            line: 595,
+            name: "std::backtrace_rs::symbolize::gimli::resolve",
+            symbol_type: "fn ()",
+            description: "static fn std::backtrace_rs::symbolize::gimli::resolve();",
+        },
+        Symbol {
+            line: 605,
+            name: "std::backtrace_rs::symbolize::gimli::resolve::{{closure}}",
+            symbol_type: "fn ()",
+            description: "static fn std::backtrace_rs::symbolize::gimli::resolve::{{closure}}();",
+        },
+    ],
+    "library/std/src/../../backtrace/src/symbolize/mod.rs": [
+        Symbol {
+            line: 398,
+            name: "<std::backtrace_rs::symbolize::SymbolName as core::fmt::Display>::fmt",
+            symbol_type: "fn ()",
+            description: "fn <std::backtrace_rs::symbolize::SymbolName as core::fmt::Display>::fmt();",
+        },
+        Symbol {
+            line: 207,
+            name: "std::backtrace_rs::symbolize::Symbol::name",
+            symbol_type: "fn ()",
+            description: "static fn std::backtrace_rs::symbolize::Symbol::name();",
+        },
+    ],
+    "library/std/src/alloc.rs": [
+        Symbol {
+            line: 352,
+            name: "std::alloc::__default_lib_allocator::__rdl_alloc",
+            symbol_type: "fn ()",
+            description: "fn std::alloc::__default_lib_allocator::__rdl_alloc();",
+        },
+        Symbol {
+            line: 384,
+            name: "std::alloc::__default_lib_allocator::__rdl_alloc_zeroed",
+            symbol_type: "fn ()",
+            description: "fn std::alloc::__default_lib_allocator::__rdl_alloc_zeroed();",
+        },
+        Symbol {
+            line: 362,
+            name: "std::alloc::__default_lib_allocator::__rdl_dealloc",
+            symbol_type: "fn ()",
+            description: "fn std::alloc::__default_lib_allocator::__rdl_dealloc();",
+        },
+        Symbol {
+            line: 369,
+            name: "std::alloc::__default_lib_allocator::__rdl_realloc",
+            symbol_type: "fn ()",
+            description: "fn std::alloc::__default_lib_allocator::__rdl_realloc();",
+        },
+        Symbol {
+            line: 327,
+            name: "std::alloc::rust_oom",
+            symbol_type: "fn ()",
+            description: "fn std::alloc::rust_oom();",
+        },
+        Symbol {
+            line: 319,
+            name: "std::alloc::default_alloc_error_hook",
+            symbol_type: "fn ()",
+            description: "static fn std::alloc::default_alloc_error_hook();",
+        },
+    ],
+    "library/std/src/env.rs": [
+        Symbol {
+            line: 46,
+            name: "std::env::current_dir",
+            symbol_type: "fn ()",
+            description: "fn std::env::current_dir();",
+        },
+    ],
+    "library/std/src/ffi/c_str.rs": [
+        Symbol {
+            line: 385,
+            name: "<&[u8] as std::ffi::c_str::CString::new::SpecIntoVec>::into_vec",
+            symbol_type: "fn ()",
+            description: "fn <&[u8] as std::ffi::c_str::CString::new::SpecIntoVec>::into_vec();",
+        },
+        Symbol {
+            line: 218,
+            name: "<std::ffi::c_str::NulError as core::fmt::Debug>::fmt",
+            symbol_type: "fn ()",
+            description: "fn <std::ffi::c_str::NulError as core::fmt::Debug>::fmt();",
+        },
+        Symbol {
+            line: 427,
+            name: "std::ffi::c_str::CString::from_vec_unchecked",
+            symbol_type: "fn ()",
+            description: "fn std::ffi::c_str::CString::from_vec_unchecked();",
+        },
+    ],
+    "library/std/src/fs.rs": [
+        Symbol {
+            line: 922,
+            name: "std::fs::OpenOptions::_open",
+            symbol_type: "fn ()",
+            description: "fn std::fs::OpenOptions::_open();",
+        },
+    ],
+    "library/std/src/io/buffered/bufwriter.rs": [
+        Symbol {
+            line: 421,
+            name: "<std::io::buffered::bufwriter::BufWriter<W> as std::io::Write>::write_all",
+            symbol_type: "fn ()",
+            description: "static fn <std::io::buffered::bufwriter::BufWriter<W> as std::io::Write>::write_all();",
+        },
+        Symbol {
+            line: 120,
+            name: "std::io::buffered::bufwriter::BufWriter<W>::flush_buf",
+            symbol_type: "fn ()",
+            description: "static fn std::io::buffered::bufwriter::BufWriter<W>::flush_buf();",
+        },
+    ],
+    "library/std/src/io/error.rs": [
+        Symbol {
+            line: 64,
+            name: "<std::io::error::Error as core::fmt::Debug>::fmt",
+            symbol_type: "fn ()",
+            description: "fn <std::io::error::Error as core::fmt::Debug>::fmt();",
+        },
+        Symbol {
+            line: 558,
+            name: "<std::io::error::Error as core::fmt::Display>::fmt",
+            symbol_type: "fn ()",
+            description: "fn <std::io::error::Error as core::fmt::Display>::fmt();",
+        },
+        Symbol {
+            line: 91,
+            name: "<std::io::error::ErrorKind as core::fmt::Debug>::fmt",
+            symbol_type: "fn ()",
+            description: "fn <std::io::error::ErrorKind as core::fmt::Debug>::fmt();",
+        },
+        Symbol {
+            line: 539,
+            name: "<std::io::error::Repr as core::fmt::Debug>::fmt",
+            symbol_type: "fn ()",
+            description: "fn <std::io::error::Repr as core::fmt::Debug>::fmt();",
+        },
+    ],
+    "library/std/src/io/impls.rs": [
+        Symbol {
+            line: 390,
+            name: "std::io::impls::<impl std::io::Write for alloc::vec::Vec<u8,A>>::flush",
+            symbol_type: "fn ()",
+            description: "static fn std::io::impls::<impl std::io::Write for alloc::vec::Vec<u8,A>>::flush();",
+        },
+        Symbol {
+            line: 379,
+            name: "std::io::impls::<impl std::io::Write for alloc::vec::Vec<u8,A>>::is_write_vectored",
+            symbol_type: "fn ()",
+            description: "static fn std::io::impls::<impl std::io::Write for alloc::vec::Vec<u8,A>>::is_write_vectored();",
+        },
+        Symbol {
+            line: 363,
+            name: "std::io::impls::<impl std::io::Write for alloc::vec::Vec<u8,A>>::write",
+            symbol_type: "fn ()",
+            description: "static fn std::io::impls::<impl std::io::Write for alloc::vec::Vec<u8,A>>::write();",
+        },
+        Symbol {
+            line: 384,
+            name: "std::io::impls::<impl std::io::Write for alloc::vec::Vec<u8,A>>::write_all",
+            symbol_type: "fn ()",
+            description: "static fn std::io::impls::<impl std::io::Write for alloc::vec::Vec<u8,A>>::write_all();",
+        },
+        Symbol {
+            line: 369,
+            name: "std::io::impls::<impl std::io::Write for alloc::vec::Vec<u8,A>>::write_vectored",
+            symbol_type: "fn ()",
+            description: "static fn std::io::impls::<impl std::io::Write for alloc::vec::Vec<u8,A>>::write_vectored();",
+        },
+    ],
+    "library/std/src/io/mod.rs": [
+        Symbol {
+            line: 1566,
+            name: "<std::io::Write::write_fmt::Adaptor<T> as core::fmt::Write>::write_str",
+            symbol_type: "fn ()",
+            description: "static fn <std::io::Write::write_fmt::Adaptor<T> as core::fmt::Write>::write_str();",
+        },
+        Symbol {
+            line: 1436,
+            name: "std::io::Write::write_all",
+            symbol_type: "fn ()",
+            description: "static fn std::io::Write::write_all();",
+        },
+        Symbol {
+            line: 1501,
+            name: "std::io::Write::write_all_vectored",
+            symbol_type: "fn ()",
+            description: "static fn std::io::Write::write_all_vectored();",
+        },
+        Symbol {
+            line: 1557,
+            name: "std::io::Write::write_fmt",
+            symbol_type: "fn ()",
+            description: "static fn std::io::Write::write_fmt();",
+        },
+    ],
+    "library/std/src/io/stdio.rs": [
+        Symbol {
+            line: 661,
+            name: "<&std::io::stdio::Stdout as std::io::Write>::write_fmt",
+            symbol_type: "fn ()",
+            description: "fn <&std::io::stdio::Stdout as std::io::Write>::write_fmt();",
+        },
+        Symbol {
+            line: 681,
+            name: "<std::io::stdio::StdoutLock as std::io::Write>::write_all",
+            symbol_type: "fn ()",
+            description: "fn <std::io::stdio::StdoutLock as std::io::Write>::write_all();",
+        },
+        Symbol {
+            line: 951,
+            name: "std::io::stdio::_print",
+            symbol_type: "fn ()",
+            description: "fn std::io::stdio::_print();",
+        },
+    ],
+    "library/std/src/panicking.rs": [
+        Symbol {
+            line: 474,
+            name: "<std::panicking::begin_panic_handler::PanicPayload as core::panic::BoxMeUp>::get",
+            symbol_type: "fn ()",
+            description: "fn <std::panicking::begin_panic_handler::PanicPayload as core::panic::BoxMeUp>::get();",
+        },
+        Symbol {
+            line: 466,
+            name: "<std::panicking::begin_panic_handler::PanicPayload as core::panic::BoxMeUp>::take_box",
+            symbol_type: "fn ()",
+            description: "fn <std::panicking::begin_panic_handler::PanicPayload as core::panic::BoxMeUp>::take_box();",
+        },
+        Symbol {
+            line: 486,
+            name: "<std::panicking::begin_panic_handler::StrPanicPayload as core::panic::BoxMeUp>::get",
+            symbol_type: "fn ()",
+            description: "fn <std::panicking::begin_panic_handler::StrPanicPayload as core::panic::BoxMeUp>::get();",
+        },
+        Symbol {
+            line: 482,
+            name: "<std::panicking::begin_panic_handler::StrPanicPayload as core::panic::BoxMeUp>::take_box",
+            symbol_type: "fn ()",
+            description: "fn <std::panicking::begin_panic_handler::StrPanicPayload as core::panic::BoxMeUp>::take_box();",
+        },
+        Symbol {
+            line: 441,
+            name: "rust_begin_unwind",
+            symbol_type: "fn ()",
+            description: "fn rust_begin_unwind();",
+        },
+        Symbol {
+            line: 59,
+            name: "std::panicking::__rust_drop_panic",
+            symbol_type: "fn ()",
+            description: "fn std::panicking::__rust_drop_panic();",
+        },
+        Symbol {
+            line: 67,
+            name: "std::panicking::__rust_foreign_exception",
+            symbol_type: "fn ()",
+            description: "fn std::panicking::__rust_foreign_exception();",
+        },
+        Symbol {
+            line: 429,
+            name: "std::panicking::begin_panic_fmt",
+            symbol_type: "fn ()",
+            description: "fn std::panicking::begin_panic_fmt();",
+        },
+        Symbol {
+            line: 290,
+            name: "std::panicking::panic_count::is_zero_slow_path",
+            symbol_type: "fn ()",
+            description: "fn std::panicking::panic_count::is_zero_slow_path();",
+        },
+        Symbol {
+            line: 637,
+            name: "std::panicking::rust_panic",
+            symbol_type: "fn ()",
+            description: "fn std::panicking::rust_panic();",
+        },
+        Symbol {
+            line: 561,
+            name: "std::panicking::rust_panic_with_hook",
+            symbol_type: "fn ()",
+            description: "fn std::panicking::rust_panic_with_hook();",
+        },
+        Symbol {
+            line: 355,
+            name: "std::panicking::try::cleanup",
+            symbol_type: "fn ()",
+            description: "fn std::panicking::try::cleanup();",
+        },
+        Symbol {
+            line: 547,
+            name: "<std::panicking::begin_panic::PanicPayload<A> as core::panic::BoxMeUp>::get",
+            symbol_type: "fn ()",
+            description: "static fn <std::panicking::begin_panic::PanicPayload<A> as core::panic::BoxMeUp>::get();",
+        },
+        Symbol {
+            line: 534,
+            name: "<std::panicking::begin_panic::PanicPayload<A> as core::panic::BoxMeUp>::take_box",
+            symbol_type: "fn ()",
+            description: "static fn <std::panicking::begin_panic::PanicPayload<A> as core::panic::BoxMeUp>::take_box();",
+        },
+        Symbol {
+            line: 513,
+            name: "std::panicking::begin_panic",
+            symbol_type: "fn ()",
+            description: "static fn std::panicking::begin_panic();",
+        },
+        Symbol {
+            line: 519,
+            name: "std::panicking::begin_panic::{{closure}}",
+            symbol_type: "fn ()",
+            description: "static fn std::panicking::begin_panic::{{closure}}();",
+        },
+        Symbol {
+            line: 493,
+            name: "std::panicking::begin_panic_handler::{{closure}}",
+            symbol_type: "fn ()",
+            description: "static fn std::panicking::begin_panic_handler::{{closure}}();",
+        },
+        Symbol {
+            line: 180,
+            name: "std::panicking::default_hook",
+            symbol_type: "fn ()",
+            description: "static fn std::panicking::default_hook();",
+        },
+        Symbol {
+            line: 202,
+            name: "std::panicking::default_hook::{{closure}}",
+            symbol_type: "fn ()",
+            description: "static fn std::panicking::default_hook::{{closure}}();",
+        },
+    ],
+    "library/std/src/path.rs": [
+        Symbol {
+            line: 851,
+            name: "<std::path::Components as core::iter::traits::iterator::Iterator>::next",
+            symbol_type: "fn ()",
+            description: "fn <std::path::Components as core::iter::traits::iterator::Iterator>::next();",
+        },
+        Symbol {
+            line: 660,
+            name: "std::path::Components::as_path",
+            symbol_type: "fn ()",
+            description: "fn std::path::Components::as_path();",
+        },
+        Symbol {
+            line: 2064,
+            name: "std::path::Path::_strip_prefix",
+            symbol_type: "fn ()",
+            description: "fn std::path::Path::_strip_prefix();",
+        },
+        Symbol {
+            line: 470,
+            name: "<std::path::Component as core::cmp::PartialEq>::eq",
+            symbol_type: "fn ()",
+            description: "static fn <std::path::Component as core::cmp::PartialEq>::eq();",
+        },
+        Symbol {
+            line: 629,
+            name: "std::path::Components::len_before_body",
+            symbol_type: "fn ()",
+            description: "static fn std::path::Components::len_before_body();",
+        },
+        Symbol {
+            line: 723,
+            name: "std::path::Components::parse_next_component_back",
+            symbol_type: "fn ()",
+            description: "static fn std::path::Components::parse_next_component_back();",
+        },
+    ],
+    "library/std/src/process.rs": [
+        Symbol {
+            line: 1813,
+            name: "std::process::abort",
+            symbol_type: "fn ()",
+            description: "fn std::process::abort();",
+        },
+    ],
+    "library/std/src/rt.rs": [
+        Symbol {
+            line: 23,
+            name: "std::rt::lang_start_internal",
+            symbol_type: "fn ()",
+            description: "fn std::rt::lang_start_internal();",
+        },
+    ],
+    "library/std/src/sync/once.rs": [
+        Symbol {
+            line: 489,
+            name: "<std::sync::once::WaiterQueue as core::ops::drop::Drop>::drop",
+            symbol_type: "fn ()",
+            description: "fn <std::sync::once::WaiterQueue as core::ops::drop::Drop>::drop();",
+        },
+        Symbol {
+            line: 385,
+            name: "std::sync::once::Once::call_inner",
+            symbol_type: "fn ()",
+            description: "fn std::sync::once::Once::call_inner();",
+        },
+        Symbol {
+            line: 261,
+            name: "std::sync::once::Once::call_once::{{closure}}",
+            symbol_type: "fn ()",
+            description: "static fn std::sync::once::Once::call_once::{{closure}}();",
+        },
+        Symbol {
+            line: 319,
+            name: "std::sync::once::Once::call_once_force::{{closure}}",
+            symbol_type: "fn ()",
+            description: "static fn std::sync::once::Once::call_once_force::{{closure}}();",
+        },
+    ],
+    "library/std/src/sys/unix/args.rs": [
+        Symbol {
+            line: 117,
+            name: "std::sys::unix::args::imp::ARGV_INIT_ARRAY::init_wrapper",
+            symbol_type: "fn ()",
+            description: "static fn std::sys::unix::args::imp::ARGV_INIT_ARRAY::init_wrapper();",
+        },
+    ],
+    "library/std/src/sys/unix/fs.rs": [
+        Symbol {
+            line: 1047,
+            name: "std::sys::unix::fs::readlink",
+            symbol_type: "fn ()",
+            description: "fn std::sys::unix::fs::readlink();",
+        },
+        Symbol {
+            line: 736,
+            name: "std::sys::unix::fs::File::open_c",
+            symbol_type: "fn ()",
+            description: "static fn std::sys::unix::fs::File::open_c();",
+        },
+        Symbol {
+            line: 93,
+            name: "std::sys::unix::fs::try_statx",
+            symbol_type: "fn ()",
+            description: "static fn std::sys::unix::fs::try_statx();",
+        },
+    ],
+    "library/std/src/sys/unix/mod.rs": [
+        Symbol {
+            line: 204,
+            name: "std::sys::unix::abort_internal",
+            symbol_type: "fn ()",
+            description: "static fn std::sys::unix::abort_internal();",
+        },
+        Symbol {
+            line: 136,
+            name: "std::sys::unix::decode_error_kind",
+            symbol_type: "fn ()",
+            description: "static fn std::sys::unix::decode_error_kind();",
+        },
+    ],
+    "library/std/src/sys/unix/mutex.rs": [
+        Symbol {
+            line: 105,
+            name: "std::sys::unix::mutex::ReentrantMutex::init",
+            symbol_type: "fn ()",
+            description: "static fn std::sys::unix::mutex::ReentrantMutex::init();",
+        },
+    ],
+    "library/std/src/sys/unix/os.rs": [
+        Symbol {
+            line: 116,
+            name: "std::sys::unix::os::error_string",
+            symbol_type: "fn ()",
+            description: "static fn std::sys::unix::os::error_string();",
+        },
+        Symbol {
+            line: 539,
+            name: "std::sys::unix::os::getenv",
+            symbol_type: "fn ()",
+            description: "static fn std::sys::unix::os::getenv();",
+        },
+    ],
+    "library/std/src/sys/unix/stack_overflow.rs": [
+        Symbol {
+            line: 180,
+            name: "std::sys::unix::stack_overflow::imp::make_handler",
+            symbol_type: "fn ()",
+            description: "static fn std::sys::unix::stack_overflow::imp::make_handler();",
+        },
+        Symbol {
+            line: 93,
+            name: "std::sys::unix::stack_overflow::imp::signal_handler",
+            symbol_type: "fn ()",
+            description: "static fn std::sys::unix::stack_overflow::imp::signal_handler();",
+        },
+    ],
+    "library/std/src/sys/unix/stdio.rs": [
+        Symbol {
+            line: 75,
+            name: "<std::sys::unix::stdio::Stderr as std::io::Write>::flush",
+            symbol_type: "fn ()",
+            description: "fn <std::sys::unix::stdio::Stderr as std::io::Write>::flush();",
+        },
+        Symbol {
+            line: 62,
+            name: "<std::sys::unix::stdio::Stderr as std::io::Write>::write",
+            symbol_type: "fn ()",
+            description: "fn <std::sys::unix::stdio::Stderr as std::io::Write>::write();",
+        },
+        Symbol {
+            line: 66,
+            name: "<std::sys::unix::stdio::Stderr as std::io::Write>::write_vectored",
+            symbol_type: "fn ()",
+            description: "fn <std::sys::unix::stdio::Stderr as std::io::Write>::write_vectored();",
+        },
+        Symbol {
+            line: 71,
+            name: "<std::sys::unix::stdio::Stderr as std::io::Write>::is_write_vectored",
+            symbol_type: "fn ()",
+            description: "static fn <std::sys::unix::stdio::Stderr as std::io::Write>::is_write_vectored();",
+        },
+    ],
+    "library/std/src/sys/unix/thread_local_dtor.rs": [
+        Symbol {
+            line: 20,
+            name: "std::sys::unix::thread_local_dtor::register_dtor",
+            symbol_type: "fn ()",
+            description: "fn std::sys::unix::thread_local_dtor::register_dtor();",
+        },
+    ],
+    "library/std/src/sys/unix/weak.rs": [
+        Symbol {
+            line: 83,
+            name: "std::sys::unix::weak::Weak<F>::initialize",
+            symbol_type: "fn ()",
+            description: "static fn std::sys::unix::weak::Weak<F>::initialize();",
+        },
+    ],
+    "library/std/src/sys_common/backtrace.rs": [
+        Symbol {
+            line: 45,
+            name: "<std::sys_common::backtrace::_print::DisplayBacktrace as core::fmt::Display>::fmt",
+            symbol_type: "fn ()",
+            description: "fn <std::sys_common::backtrace::_print::DisplayBacktrace as core::fmt::Display>::fmt();",
+        },
+        Symbol {
+            line: 137,
+            name: "std::sys_common::backtrace::__rust_end_short_backtrace",
+            symbol_type: "fn ()",
+            description: "static fn std::sys_common::backtrace::__rust_end_short_backtrace();",
+        },
+        Symbol {
+            line: 57,
+            name: "std::sys_common::backtrace::_print_fmt::{{closure}}",
+            symbol_type: "fn ()",
+            description: "static fn std::sys_common::backtrace::_print_fmt::{{closure}}();",
+        },
+        Symbol {
+            line: 74,
+            name: "std::sys_common::backtrace::_print_fmt::{{closure}}::{{closure}}",
+            symbol_type: "fn ()",
+            description: "static fn std::sys_common::backtrace::_print_fmt::{{closure}}::{{closure}}();",
+        },
+        Symbol {
+            line: 197,
+            name: "std::sys_common::backtrace::output_filename",
+            symbol_type: "fn ()",
+            description: "static fn std::sys_common::backtrace::output_filename();",
+        },
+    ],
+    "library/std/src/sys_common/os_str_bytes.rs": [
+        Symbol {
+            line: 33,
+            name: "<std::sys_common::os_str_bytes::Slice as core::fmt::Debug>::fmt",
+            symbol_type: "fn ()",
+            description: "fn <std::sys_common::os_str_bytes::Slice as core::fmt::Debug>::fmt();",
+        },
+    ],
+    "library/std/src/sys_common/thread_info.rs": [
+        Symbol {
+            line: 39,
+            name: "std::sys_common::thread_info::set",
+            symbol_type: "fn ()",
+            description: "fn std::sys_common::thread_info::set();",
+        },
+        Symbol {
+            line: 20,
+            name: "std::sys_common::thread_info::ThreadInfo::with::{{closure}}",
+            symbol_type: "fn ()",
+            description: "static fn std::sys_common::thread_info::ThreadInfo::with::{{closure}}();",
+        },
+    ],
+    "library/std/src/sys_common/thread_local_dtor.rs": [
+        Symbol {
+            line: 39,
+            name: "std::sys_common::thread_local_dtor::register_dtor_fallback::run_dtors",
+            symbol_type: "fn ()",
+            description: "static fn std::sys_common::thread_local_dtor::register_dtor_fallback::run_dtors();",
+        },
+    ],
+    "library/std/src/sys_common/thread_local_key.rs": [
+        Symbol {
+            line: 151,
+            name: "std::sys_common::thread_local_key::StaticKey::lazy_init",
+            symbol_type: "fn ()",
+            description: "fn std::sys_common::thread_local_key::StaticKey::lazy_init();",
+        },
+    ],
+    "library/std/src/sys_common/util.rs": [
+        Symbol {
+            line: 17,
+            name: "std::sys_common::util::abort",
+            symbol_type: "fn ()",
+            description: "static fn std::sys_common::util::abort();",
+        },
+        Symbol {
+            line: 6,
+            name: "std::sys_common::util::dumb_print",
+            symbol_type: "fn ()",
+            description: "static fn std::sys_common::util::dumb_print();",
+        },
+    ],
+    "library/std/src/thread/local.rs": [
+        Symbol {
+            line: 206,
+            name: "<std::thread::local::AccessError as core::fmt::Debug>::fmt",
+            symbol_type: "fn ()",
+            description: "fn <std::thread::local::AccessError as core::fmt::Debug>::fmt();",
+        },
+        Symbol {
+            line: 469,
+            name: "std::thread::local::fast::Key<T>::try_initialize",
+            symbol_type: "fn ()",
+            description: "static fn std::thread::local::fast::Key<T>::try_initialize();",
+        },
+        Symbol {
+            line: 503,
+            name: "std::thread::local::fast::destroy_value",
+            symbol_type: "fn ()",
+            description: "static fn std::thread::local::fast::destroy_value();",
+        },
+    ],
+    "library/std/src/thread/mod.rs": [
+        Symbol {
+            line: 1066,
+            name: "std::thread::Thread::new",
+            symbol_type: "fn ()",
+            description: "fn std::thread::Thread::new();",
+        },
+        Symbol {
+            line: 800,
+            name: "std::thread::sleep",
+            symbol_type: "fn ()",
+            description: "fn std::thread::sleep();",
+        },
+    ],
+    "src/main.rs": [
+        Symbol {
+            line: 9,
+            name: "hello_world::main",
+            symbol_type: "fn ()",
+            description: "static fn hello_world::main();",
+        },
+    ],
+}
