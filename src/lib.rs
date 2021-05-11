@@ -3,6 +3,7 @@ use std::{collections::HashMap, fmt, process::Stdio, time::Duration};
 use breakpoint::{Breakpoint, LineSpec};
 use camino::{Utf8Path, Utf8PathBuf};
 use rand::Rng;
+use status::Status;
 use tokio::{io, process};
 use tracing::{debug, error};
 
@@ -10,6 +11,7 @@ pub mod breakpoint;
 mod inner;
 pub mod parser;
 pub mod raw;
+pub mod status;
 mod string_stream;
 pub mod symbol;
 
@@ -116,6 +118,30 @@ impl Gdb {
         Ok(Self { inner, timeout })
     }
 
+    /// Note: The status is refreshed when gdb sends us notifications. Calling
+    /// this function just fetches the cached status.
+    pub async fn status(&self) -> Result<Status, TimeoutError> {
+        self.inner.status(self.timeout).await
+    }
+
+    /// Wait for the status to change and return the new status.
+    ///
+    /// To avoid missing a status change right before your request is processed,
+    /// submit what you think the current status is. If you're wrong, you'll get
+    /// back the current status instead of waiting for the next one.
+    ///
+    /// If you don't specify a timeout the default timeout for this instance
+    /// will be used.
+    pub async fn next_status(
+        &self,
+        current: Status,
+        timeout: Option<Duration>,
+    ) -> Result<Status, TimeoutError> {
+        self.inner
+            .next_status(current, timeout.unwrap_or(self.timeout))
+            .await
+    }
+
     pub async fn exec_run(&self) -> Result<(), Error> {
         self.execute_raw("-exec-run")
             .await?
@@ -205,8 +231,8 @@ impl Gdb {
 
     /// Pop any messages gdb has sent that weren't addressed to any specific
     /// request off the buffer and return them.
-    pub async fn pop_general(&self) -> Vec<raw::GeneralMessage> {
-        self.inner.pop_general().await
+    pub async fn pop_general(&self) -> Result<Vec<raw::GeneralMessage>, TimeoutError> {
+        self.inner.pop_general(self.timeout).await
     }
 
     /// Change the timeout used for all async operations
@@ -239,6 +265,8 @@ impl Token {
 mod tests {
     use std::{collections::BTreeMap, iter};
 
+    use crate::status::StoppedReason;
+
     use super::*;
     use insta::assert_debug_snapshot;
     use pretty_assertions::assert_eq;
@@ -248,6 +276,68 @@ mod tests {
         init();
         let bin = build_hello_world();
         Ok(Gdb::spawn(bin, TIMEOUT)?)
+    }
+
+    #[tokio::test]
+    async fn test_next_status_when_wrong_about_current() -> Result {
+        let subject = fixture()?;
+
+        subject.exec_run().await?;
+        let status = subject.next_status(Status::Unstarted, None).await?;
+        assert_eq!(Status::Running, status);
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_next_status_when_correct_about_current() -> Result {
+        let subject = fixture()?;
+
+        subject.exec_run().await?;
+        let status = subject.next_status(Status::Running, None).await?;
+        assert_eq!(
+            Status::Stopped {
+                reason: StoppedReason::ExitedNormally
+            },
+            status
+        );
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_status_through_break_continue() -> Result {
+        let subject = fixture()?;
+
+        let status = subject.status().await?;
+        assert_eq!(Status::Unstarted, status);
+
+        subject.break_insert(LineSpec::function("main")).await?;
+        subject.exec_run().await?;
+
+        let status = subject.next_status(status, None).await?;
+        assert_eq!(Status::Running, status);
+
+        let status = subject.next_status(status, None).await?;
+        assert_eq!(
+            Status::Stopped {
+                reason: StoppedReason::Breakpoint
+            },
+            status
+        );
+
+        subject.exec_continue().await?;
+
+        let status = subject.next_status(status, None).await?;
+        assert_eq!(Status::Running, status);
+
+        let status = subject.next_status(status, None).await?;
+        assert_eq!(
+            Status::Stopped {
+                reason: StoppedReason::ExitedNormally
+            },
+            status
+        );
+
+        Ok(())
     }
 
     #[tokio::test]
@@ -319,7 +409,7 @@ mod tests {
     async fn test_pop_general() -> Result {
         let subject = fixture()?;
         subject.execute_raw("-gdb-version").await?;
-        let general = subject.pop_general().await;
+        let general = subject.pop_general().await?;
         assert!(!general.is_empty());
         Ok(())
     }
