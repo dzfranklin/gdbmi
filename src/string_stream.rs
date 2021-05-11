@@ -20,11 +20,6 @@ impl StringStream {
         buf
     }
 
-    /// Advance the index of this StringStream by offset characters
-    pub(crate) fn seek(&mut self, offset: usize) {
-        self.index += offset;
-    }
-
     pub(crate) fn seek_back(&mut self, offset: usize) {
         self.index = self.index.saturating_sub(offset);
     }

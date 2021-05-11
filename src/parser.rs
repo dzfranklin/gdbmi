@@ -7,7 +7,6 @@ use crate::{
 };
 use lazy_static::lazy_static;
 use regex::Regex;
-use tracing::{debug, warn};
 
 // TODO: Refactor to use bytes instead of strings
 
