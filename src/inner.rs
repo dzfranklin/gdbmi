@@ -144,7 +144,7 @@ async fn mainloop(
                         info!("Got general message: {:?}", general);
                         if general == GeneralMessage::Done {
                             // Suppress these, as they come after every command
-                            debug!("Got done");
+                            debug!("Ignoring done");
                         } else {
                             pending_general.push(general);
                         }
