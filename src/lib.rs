@@ -163,7 +163,7 @@ mod tests {
 
     fn fixture() -> eyre::Result<Gdb> {
         init();
-        let bin = build_hello_world()?;
+        let bin = build_hello_world();
         Ok(Gdb::spawn(bin, TIMEOUT)?)
     }
 

@@ -18,16 +18,24 @@ pub type Result = eyre::Result<()>;
 
 pub const TIMEOUT: Duration = Duration::from_secs(5);
 
-pub fn build_hello_world() -> eyre::Result<String> {
-    cmd!(
-        "cargo",
-        "build",
-        "-Z",
-        "unstable-options",
-        "--out-dir",
-        "../.out"
-    )
-    .dir("samples/hello_world")
-    .run()?;
-    Ok("samples/.out/hello_world".into())
+static BUILD: Once = Once::new();
+
+pub fn build_hello_world() -> String {
+    BUILD.call_once(|| {
+        cmd!(
+            "cargo",
+            "build",
+            "-Z",
+            "unstable-options",
+            "--out-dir",
+            "../.out"
+        )
+        .dir("samples/hello_world")
+        .stdin_null()
+        .stdout_null()
+        .stderr_null()
+        .run()
+        .expect("Failed to build sample");
+    });
+    "samples/.out/hello_world".into()
 }
