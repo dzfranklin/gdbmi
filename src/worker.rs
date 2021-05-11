@@ -1,92 +1,24 @@
-use std::{collections::HashMap, time::Duration};
+use std::collections::HashMap;
 
 use crate::{
     parser::{self, parse_message},
     raw::{GeneralMessage, Response},
     status::Status,
-    Error, TimeoutError, Token,
+    Error, Token,
 };
 
 use tokio::{
     io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
-    process::{self},
-    select,
+    process, select,
     sync::mpsc,
-    time,
 };
 use tracing::{debug, error, info, warn};
 
-pub(super) struct Inner {
-    tx: mpsc::UnboundedSender<Msg>,
-}
-
-impl Inner {
-    pub(super) fn new(cmd: process::Child) -> Self {
-        let (tx, rx) = mpsc::unbounded_channel::<Msg>();
-
-        tokio::spawn(async move { mainloop(cmd, rx).await });
-        Self { tx }
-    }
-
-    pub(super) async fn execute(&self, line: String, timeout: Duration) -> Result<Response, Error> {
-        let token = Token::generate();
-        let (out_tx, out_rx) = mpsc::channel(1);
-        self.send(Msg::Cmd {
-            token,
-            line,
-            out: out_tx,
-        });
-        Self::receive(out_rx, timeout).await?
-    }
-
-    pub(super) async fn pop_general(
-        &self,
-        timeout: Duration,
-    ) -> Result<Vec<GeneralMessage>, TimeoutError> {
-        let (out_tx, out_rx) = mpsc::channel(1);
-        self.send(Msg::PopGeneral(out_tx));
-        Self::receive(out_rx, timeout).await
-    }
-
-    pub(super) async fn status(&self, timeout: Duration) -> Result<Status, TimeoutError> {
-        let (out_tx, out_rx) = mpsc::channel(1);
-        self.send(Msg::Status(out_tx));
-        Self::receive(out_rx, timeout).await
-    }
-
-    pub(super) async fn next_status(
-        &self,
-        current: Status,
-        timeout: Duration,
-    ) -> Result<Status, TimeoutError> {
-        let (out_tx, out_rx) = mpsc::channel(1);
-        self.send(Msg::NextStatus {
-            current,
-            out: out_tx,
-        });
-        Self::receive(out_rx, timeout).await
-    }
-
-    fn send(&self, msg: Msg) {
-        self.tx.send(msg).expect("Can send to mainloop");
-    }
-
-    async fn receive<O: std::fmt::Debug>(
-        mut rx: mpsc::Receiver<O>,
-        timeout: Duration,
-    ) -> Result<O, TimeoutError> {
-        time::timeout(timeout, rx.recv())
-            .await
-            .map(|o| o.expect("out chan not closed"))
-            .map_err(|_| TimeoutError)
-    }
-}
-
 #[derive(Debug)]
-enum Msg {
+pub(super) enum Msg {
     Cmd {
         token: Token,
-        line: String,
+        msg: String,
         out: mpsc::Sender<Result<Response, Error>>,
     },
     PopGeneral(mpsc::Sender<Vec<GeneralMessage>>),
@@ -95,6 +27,12 @@ enum Msg {
         current: Status,
         out: mpsc::Sender<Status>,
     },
+}
+
+pub(super) fn spawn(cmd: process::Child) -> mpsc::UnboundedSender<Msg> {
+    let (tx, rx) = mpsc::unbounded_channel::<Msg>();
+    tokio::spawn(async move { mainloop(cmd, rx).await });
+    tx
 }
 
 async fn mainloop(mut cmd: process::Child, mut rx: mpsc::UnboundedReceiver<Msg>) {
@@ -121,9 +59,9 @@ async fn mainloop(mut cmd: process::Child, mut rx: mpsc::UnboundedReceiver<Msg>)
                 };
 
                 match msg {
-                    Msg::Cmd { token, line, out } => {
+                    Msg::Cmd { token, msg, out } => {
                         let mut input = token.serialize();
-                        input.push_str(&line);
+                        input.push_str(&msg);
                         input.push('\n');
 
                         debug!("Sending {}", input);

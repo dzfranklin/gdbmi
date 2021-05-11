@@ -4,20 +4,16 @@ use breakpoint::{Breakpoint, LineSpec};
 use camino::{Utf8Path, Utf8PathBuf};
 use rand::Rng;
 use status::Status;
-use tokio::{io, process};
+use tokio::{io, process, sync::mpsc, time};
 use tracing::{debug, error};
 
 pub mod breakpoint;
-mod inner;
 pub mod parser;
 pub mod raw;
 pub mod status;
 mod string_stream;
 pub mod symbol;
-
-use inner::Inner;
-
-use crate::symbol::Function;
+mod worker;
 
 #[cfg(test)]
 mod test_common;
@@ -50,6 +46,8 @@ pub enum Error {
     Timeout(#[from] TimeoutError),
 }
 
+// TODO: Remove inner, move code into Gdb
+
 #[derive(Debug, Clone, thiserror::Error, Eq, PartialEq)]
 /// Timed out waiting for a message
 ///
@@ -78,7 +76,7 @@ pub enum ParseHexError {
 }
 
 pub struct Gdb {
-    inner: Inner,
+    worker: mpsc::UnboundedSender<worker::Msg>,
     timeout: Duration,
 }
 
@@ -104,7 +102,7 @@ impl Gdb {
             .stderr(Stdio::piped())
             .spawn()?;
 
-        Self::new(cmd, timeout)
+        Ok(Self::new(cmd, timeout))
     }
 
     /// Communicate with the provided process.
@@ -113,15 +111,17 @@ impl Gdb {
     /// GDB/MI (provide --interpreter=mi3 to gdb).await
     ///
     /// See [`Self::spawn`] for an explanation of `timeout`.
-    pub fn new(cmd: process::Child, timeout: Duration) -> io::Result<Self> {
-        let inner = Inner::new(cmd);
-        Ok(Self { inner, timeout })
+    pub fn new(cmd: process::Child, timeout: Duration) -> Self {
+        let worker = worker::spawn(cmd);
+        Self { worker, timeout }
     }
 
     /// Note: The status is refreshed when gdb sends us notifications. Calling
     /// this function just fetches the cached status.
     pub async fn status(&self) -> Result<Status, TimeoutError> {
-        self.inner.status(self.timeout).await
+        let (out_tx, out_rx) = mpsc::channel(1);
+        self.worker_send(worker::Msg::Status(out_tx));
+        Self::worker_receive(out_rx, self.timeout).await
     }
 
     /// Wait for the status to change and return the new status.
@@ -137,9 +137,13 @@ impl Gdb {
         current: Status,
         timeout: Option<Duration>,
     ) -> Result<Status, TimeoutError> {
-        self.inner
-            .next_status(current, timeout.unwrap_or(self.timeout))
-            .await
+        let timeout = timeout.unwrap_or(self.timeout);
+        let (out_tx, out_rx) = mpsc::channel(1);
+        self.worker_send(worker::Msg::NextStatus {
+            current,
+            out: out_tx,
+        });
+        Self::worker_receive(out_rx, timeout).await
     }
 
     pub async fn exec_run(&self) -> Result<(), Error> {
@@ -207,7 +211,7 @@ impl Gdb {
 
     pub async fn symbol_info_functions(
         &self,
-    ) -> Result<HashMap<Utf8PathBuf, Vec<Function>>, Error> {
+    ) -> Result<HashMap<Utf8PathBuf, Vec<symbol::Function>>, Error> {
         let payload = self
             .execute_raw("-symbol-info-functions")
             .await?
@@ -220,7 +224,14 @@ impl Gdb {
     ///
     /// Your command will be prefixed with a token and suffixed with a newline.
     pub async fn execute_raw(&self, msg: impl Into<String>) -> Result<raw::Response, Error> {
-        self.inner.execute(msg.into(), self.timeout).await
+        let token = Token::generate();
+        let (out_tx, out_rx) = mpsc::channel(1);
+        self.worker_send(worker::Msg::Cmd {
+            token,
+            msg: msg.into(),
+            out: out_tx,
+        });
+        Self::worker_receive(out_rx, self.timeout).await?
     }
 
     /// Waits until gdb is responsive to commands.
@@ -235,12 +246,28 @@ impl Gdb {
     /// Pop any messages gdb has sent that weren't addressed to any specific
     /// request off the buffer and return them.
     pub async fn pop_general(&self) -> Result<Vec<raw::GeneralMessage>, TimeoutError> {
-        self.inner.pop_general(self.timeout).await
+        let (out_tx, out_rx) = mpsc::channel(1);
+        self.worker_send(worker::Msg::PopGeneral(out_tx));
+        Self::worker_receive(out_rx, self.timeout).await
     }
 
     /// Change the timeout used for all async operations
     pub fn set_timeout(&mut self, timeout: Duration) {
         self.timeout = timeout;
+    }
+
+    fn worker_send(&self, msg: worker::Msg) {
+        self.worker.send(msg).expect("Can send to mainloop");
+    }
+
+    async fn worker_receive<O: std::fmt::Debug>(
+        mut rx: mpsc::Receiver<O>,
+        timeout: Duration,
+    ) -> Result<O, TimeoutError> {
+        time::timeout(timeout, rx.recv())
+            .await
+            .map(|o| o.expect("out chan not closed"))
+            .map_err(|_| TimeoutError)
     }
 }
 
@@ -250,9 +277,8 @@ impl fmt::Debug for Gdb {
     }
 }
 
-// TODO: Move to inner
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub struct Token(pub u32);
+struct Token(u32);
 
 impl Token {
     fn generate() -> Self {
