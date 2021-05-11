@@ -99,6 +99,17 @@ impl ResultResponse {
     pub fn expect_payload(self) -> Result<Dict, ResponseError> {
         self.payload.ok_or(ResponseError::ExpectedPayload)
     }
+
+    pub fn expect_msg_is(&self, msg: &str) -> Result<(), ResponseError> {
+        if self.message != msg {
+            Err(ResponseError::UnexpectedResponseMessage {
+                expected: msg.to_owned(),
+                actual: self.message.to_owned(),
+            })
+        } else {
+            Ok(())
+        }
+    }
 }
 
 impl Dict {

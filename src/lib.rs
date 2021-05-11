@@ -36,6 +36,9 @@ pub enum ResponseError {
     #[error("Failed to parse payload value as u32, got: {0}")]
     ParseU32(#[from] std::num::ParseIntError),
 
+    #[error("Expected response to have message {expected}, got {actual}")]
+    UnexpectedResponseMessage { expected: String, actual: String },
+
     #[error("Timeout waiting for response")]
     Timeout,
 }
@@ -86,6 +89,13 @@ impl Gdb {
     pub fn new(cmd: process::Child, timeout: Duration) -> io::Result<Self> {
         let inner = Inner::new(cmd);
         Ok(Self { inner, timeout })
+    }
+
+    pub async fn run(&self) -> Result<(), ResponseError> {
+        self.execute_raw("-exec-run")
+            .await?
+            .expect_result()?
+            .expect_msg_is("running")
     }
 
     pub async fn symbol_info_functions(
@@ -155,6 +165,13 @@ mod tests {
         init();
         let bin = build_hello_world()?;
         Ok(Gdb::spawn(bin, TIMEOUT)?)
+    }
+
+    #[tokio::test]
+    async fn test_run() -> Result {
+        let subject = fixture()?;
+        subject.run().await?;
+        Ok(())
     }
 
     #[tokio::test]
