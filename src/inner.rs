@@ -101,7 +101,7 @@ async fn mainloop(
                 }
 
                 let line = &stdout_buf[..stdout_buf.len() - 1]; // strip the newline
-                debug!("Got stdin: {}", line);
+                debug!("Got stdout: {}", line);
                 let response = match parse_message(&line) {
                     Ok(response) => {
                         debug!("Parsed response: {:?}", response);
