@@ -208,6 +208,11 @@ impl Gdb {
     pub async fn pop_general(&self) -> Vec<raw::GeneralMessage> {
         self.inner.pop_general().await
     }
+
+    /// Change the timeout used for all async operations
+    pub fn set_timeout(&mut self, timeout: Duration) {
+        self.timeout = timeout;
+    }
 }
 
 impl fmt::Debug for Gdb {
