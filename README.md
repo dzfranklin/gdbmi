@@ -1,6 +1,6 @@
 # gdbmi
 
-A port of pygdbmi.
+The parser is ported from pygdbmi.
 
 All changes written by me are MIT licensed. Pygdbmi is licensed under the following terms:
 
