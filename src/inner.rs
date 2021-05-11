@@ -105,7 +105,6 @@ async fn mainloop(
                 debug!("Got stdout: {}", line);
                 let response = match parse_message(&line) {
                     Ok(response) => {
-                        debug!("Parsed response: {:?}", response);
                         response
                     },
                     Err(err) => {
