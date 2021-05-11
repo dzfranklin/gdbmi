@@ -1,4 +1,4 @@
-use crate::{raw, ResponseError};
+use crate::{raw, Error};
 use camino::Utf8PathBuf;
 use std::collections::HashMap;
 
@@ -12,7 +12,7 @@ pub struct Symbol {
 
 pub(crate) fn from_symbol_info_functions_payload(
     mut payload: raw::Dict,
-) -> Result<HashMap<Utf8PathBuf, Vec<Symbol>>, ResponseError> {
+) -> Result<HashMap<Utf8PathBuf, Vec<Symbol>>, Error> {
     let raw = payload
         .remove_expect("symbols")?
         .expect_dict()?
@@ -24,14 +24,13 @@ pub(crate) fn from_symbol_info_functions_payload(
     for group in raw {
         let mut group = group.expect_dict()?;
 
-        let filename = group.remove_expect("filename")?.expect_string()?;
-        let filename = Utf8PathBuf::from(filename);
+        let filename = group.remove_expect("filename")?.expect_path()?;
 
         let mut symbols = Vec::new();
         let raw_symbols = group.remove_expect("symbols")?.expect_list()?;
         for raw in raw_symbols {
             let mut raw = raw.expect_dict()?;
-            let line = raw.remove_expect("line")?.expect_u32()?;
+            let line = raw.remove_expect("line")?.expect_number()?;
             let name = raw.remove_expect("name")?.expect_string()?;
             let symbol_type = raw.remove_expect("type")?.expect_string()?;
             let description = raw.remove_expect("description")?.expect_string()?;

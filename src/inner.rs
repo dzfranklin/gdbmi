@@ -3,7 +3,7 @@ use std::{collections::HashMap, time::Duration};
 use crate::{
     parser::{self, parse_message},
     raw::{GeneralMessage, Response},
-    ResponseError, Token,
+    Error, Token,
 };
 
 use tokio::{
@@ -34,11 +34,7 @@ impl Inner {
         }
     }
 
-    pub(super) async fn execute(
-        &self,
-        msg: String,
-        timeout: Duration,
-    ) -> Result<Response, ResponseError> {
+    pub(super) async fn execute(&self, msg: String, timeout: Duration) -> Result<Response, Error> {
         let token = Token::generate();
         let (out_tx, mut out_rx) = mpsc::channel(1);
 
@@ -48,7 +44,7 @@ impl Inner {
 
         time::timeout(timeout, out_rx.recv())
             .await
-            .map_err(|_| ResponseError::Timeout)?
+            .map_err(|_| Error::Timeout)?
             .expect("out chan not closed")
     }
 
@@ -59,7 +55,7 @@ impl Inner {
     }
 }
 
-type Request = (Token, String, mpsc::Sender<Result<Response, ResponseError>>);
+type Request = (Token, String, mpsc::Sender<Result<Response, Error>>);
 
 async fn mainloop(
     mut cmd: process::Child,

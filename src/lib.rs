@@ -1,10 +1,12 @@
 use std::{collections::HashMap, fmt, process::Stdio, time::Duration};
 
+use breakpoint::{Breakpoint, LineSpec};
 use camino::{Utf8Path, Utf8PathBuf};
 use rand::Rng;
 use tokio::{io, process};
 use tracing::{debug, error};
 
+pub mod breakpoint;
 mod inner;
 pub mod parser;
 pub mod raw;
@@ -19,7 +21,7 @@ use crate::symbol::Symbol;
 mod test_common;
 
 #[derive(Debug, Clone, thiserror::Error, Eq, PartialEq)]
-pub enum ResponseError {
+pub enum Error {
     #[error(transparent)]
     Gdb(#[from] GdbError),
 
@@ -33,8 +35,11 @@ pub enum ResponseError {
     #[error("Expected response to have a payload")]
     ExpectedPayload,
 
-    #[error("Failed to parse payload value as u32, got: {0}")]
+    #[error("Failed to parse payload value as u32")]
     ParseU32(#[from] std::num::ParseIntError),
+
+    #[error("Failed to parse payload value as hex")]
+    ParseHex(#[from] ParseHexError),
 
     #[error("Expected response to have message {expected}, got {actual}")]
     UnexpectedResponseMessage { expected: String, actual: String },
@@ -48,6 +53,14 @@ pub enum ResponseError {
 pub struct GdbError {
     code: String,
     msg: String,
+}
+
+#[derive(Debug, Clone, thiserror::Error, Eq, PartialEq)]
+pub enum ParseHexError {
+    #[error("Expected to start with 0x")]
+    InvalidPrefix,
+    #[error(transparent)]
+    ParseInt(#[from] std::num::ParseIntError),
 }
 
 pub struct Gdb {
@@ -91,16 +104,56 @@ impl Gdb {
         Ok(Self { inner, timeout })
     }
 
-    pub async fn run(&self) -> Result<(), ResponseError> {
+    pub async fn run(&self) -> Result<(), Error> {
         self.execute_raw("-exec-run")
             .await?
             .expect_result()?
             .expect_msg_is("running")
     }
 
-    pub async fn symbol_info_functions(
-        &self,
-    ) -> Result<HashMap<Utf8PathBuf, Vec<Symbol>>, ResponseError> {
+    pub async fn break_insert(&self, at: LineSpec) -> Result<Breakpoint, Error> {
+        let raw = self
+            .execute_raw(format!("-break-insert {}", at.serialize()))
+            .await?
+            .expect_result()?
+            .expect_payload()?
+            .remove_expect("bkpt")?
+            .expect_dict()?;
+
+        Breakpoint::from_raw(raw)
+    }
+
+    pub async fn break_disable<'a, I>(&self, breakpoints: I) -> Result<(), Error>
+    where
+        I: IntoIterator<Item = &'a Breakpoint>,
+    {
+        let mut raw = String::new();
+        for bp in breakpoints {
+            raw.push_str(&format!("{} ", bp.number));
+        }
+
+        self.execute_raw(format!("-break-disable {}", raw))
+            .await?
+            .expect_result()?
+            .expect_msg_is("done")
+    }
+
+    pub async fn break_delete<'a, I>(&self, breakpoints: I) -> Result<(), Error>
+    where
+        I: IntoIterator<Item = &'a Breakpoint>,
+    {
+        let mut raw = String::new();
+        for bp in breakpoints {
+            raw.push_str(&format!("{} ", bp.number));
+        }
+
+        self.execute_raw(format!("-break-delete {}", raw))
+            .await?
+            .expect_result()?
+            .expect_msg_is("done")
+    }
+
+    pub async fn symbol_info_functions(&self) -> Result<HashMap<Utf8PathBuf, Vec<Symbol>>, Error> {
         let payload = self
             .execute_raw("-symbol-info-functions")
             .await?
@@ -112,17 +165,14 @@ impl Gdb {
     /// Execute a command for a response.
     ///
     /// Your command will be prefixed with a token and suffixed with a newline.
-    pub async fn execute_raw(
-        &self,
-        msg: impl Into<String>,
-    ) -> Result<raw::Response, ResponseError> {
+    pub async fn execute_raw(&self, msg: impl Into<String>) -> Result<raw::Response, Error> {
         self.inner.execute(msg.into(), self.timeout).await
     }
 
     /// Waits until gdb is responsive to commands.
     ///
     /// You do not need to call this before sending commands yourself.
-    pub async fn await_ready(&self) -> Result<(), ResponseError> {
+    pub async fn await_ready(&self) -> Result<(), Error> {
         self.execute_raw("-list-target-features").await?;
         Ok(())
     }
@@ -155,7 +205,7 @@ impl Token {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::BTreeMap;
+    use std::{collections::BTreeMap, iter};
 
     use super::*;
     use insta::assert_debug_snapshot;
@@ -165,6 +215,24 @@ mod tests {
         init();
         let bin = build_hello_world();
         Ok(Gdb::spawn(bin, TIMEOUT)?)
+    }
+
+    #[tokio::test]
+    async fn test_break() -> Result {
+        let subject = fixture()?;
+
+        let bp = subject
+            .break_insert(LineSpec::line("samples/hello_world/src/main.rs", 13))
+            .await?;
+        assert_eq!(1, bp.number);
+        assert!(bp.file.ends_with("samples/hello_world/src/main.rs"));
+        assert_eq!(13, bp.line);
+        assert_eq!(0, bp.times);
+
+        subject.break_disable(iter::once(&bp)).await?;
+        subject.break_delete(iter::once(&bp)).await?;
+
+        Ok(())
     }
 
     #[tokio::test]
@@ -206,7 +274,7 @@ mod tests {
         let err = subject.execute_raw("-invalid-command").await.unwrap_err();
 
         assert_eq!(
-            ResponseError::Gdb(GdbError {
+            Error::Gdb(GdbError {
                 code: "undefined-command".into(),
                 msg: "Undefined MI command: invalid-command".into(),
             }),

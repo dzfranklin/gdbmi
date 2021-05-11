@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 
+use camino::Utf8PathBuf;
 use tracing::error;
 
-use crate::{parser, GdbError, ResponseError};
+use crate::{parser, Error, GdbError, ParseHexError};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Message {
@@ -53,17 +54,17 @@ pub struct Dict(HashMap<String, Value>);
 pub type List = Vec<Value>;
 
 impl Response {
-    pub fn expect_result(self) -> Result<ResultResponse, ResponseError> {
+    pub fn expect_result(self) -> Result<ResultResponse, Error> {
         match self {
             Self::Result(result) => Ok(result),
             _ => {
                 error!("Expected Response to be Result, got: {:?}", self);
-                Err(ResponseError::ExpectedResultResponse)
+                Err(Error::ExpectedResultResponse)
             }
         }
     }
 
-    pub(crate) fn from_parsed(response: parser::Response) -> Result<Self, ResponseError> {
+    pub(crate) fn from_parsed(response: parser::Response) -> Result<Self, Error> {
         match response {
             parser::Response::Notify {
                 message, payload, ..
@@ -73,7 +74,7 @@ impl Response {
             } => {
                 if message == "error" {
                     let gdb_error = Self::_into_error(payload)?;
-                    Err(ResponseError::Gdb(gdb_error))
+                    Err(Error::Gdb(gdb_error))
                 } else {
                     Ok(Self::Result(ResultResponse { message, payload }))
                 }
@@ -81,11 +82,11 @@ impl Response {
         }
     }
 
-    fn _into_error(payload: Option<Dict>) -> Result<GdbError, ResponseError> {
+    fn _into_error(payload: Option<Dict>) -> Result<GdbError, Error> {
         let mut payload = if let Some(payload) = payload {
             payload
         } else {
-            return Err(ResponseError::ExpectedPayload);
+            return Err(Error::ExpectedPayload);
         };
 
         let code = payload.remove_expect("code")?.expect_string()?;
@@ -96,13 +97,13 @@ impl Response {
 }
 
 impl ResultResponse {
-    pub fn expect_payload(self) -> Result<Dict, ResponseError> {
-        self.payload.ok_or(ResponseError::ExpectedPayload)
+    pub fn expect_payload(self) -> Result<Dict, Error> {
+        self.payload.ok_or(Error::ExpectedPayload)
     }
 
-    pub fn expect_msg_is(&self, msg: &str) -> Result<(), ResponseError> {
+    pub fn expect_msg_is(&self, msg: &str) -> Result<(), Error> {
         if self.message != msg {
-            Err(ResponseError::UnexpectedResponseMessage {
+            Err(Error::UnexpectedResponseMessage {
                 expected: msg.to_owned(),
                 actual: self.message.to_owned(),
             })
@@ -125,10 +126,10 @@ impl Dict {
         &mut self.0
     }
 
-    pub fn remove_expect(&mut self, key: &str) -> std::result::Result<Value, ResponseError> {
+    pub fn remove_expect(&mut self, key: &str) -> std::result::Result<Value, Error> {
         self.0
             .remove(key)
-            .map_or(Err(ResponseError::ExpectedDifferentPayload), Ok)
+            .map_or(Err(Error::ExpectedDifferentPayload), Ok)
     }
 }
 
@@ -157,41 +158,56 @@ impl Value {
         Self::List(list)
     }
 
-    pub fn expect_string(self) -> Result<String, ResponseError> {
+    pub fn expect_string(self) -> Result<String, Error> {
         if let Self::String(val) = self {
             Ok(val)
         } else {
             error!("Expected string, got: {:?}", self);
-            Err(ResponseError::ExpectedDifferentPayload)
+            Err(Error::ExpectedDifferentPayload)
         }
     }
 
-    pub fn expect_dict(self) -> Result<Dict, ResponseError> {
+    pub fn expect_dict(self) -> Result<Dict, Error> {
         if let Self::Dict(val) = self {
             Ok(val)
         } else {
             error!("Expected dict, got: {:?}", self);
-            Err(ResponseError::ExpectedDifferentPayload)
+            Err(Error::ExpectedDifferentPayload)
         }
     }
 
-    pub fn expect_list(self) -> Result<List, ResponseError> {
+    pub fn expect_list(self) -> Result<List, Error> {
         if let Self::List(val) = self {
             Ok(val)
         } else {
             error!("Expected dict, got: {:?}", self);
-            Err(ResponseError::ExpectedDifferentPayload)
+            Err(Error::ExpectedDifferentPayload)
         }
     }
 
-    pub fn expect_u32(self) -> Result<u32, ResponseError> {
+    pub fn expect_number(self) -> Result<u32, Error> {
         let val = if let Self::String(val) = self {
             Ok(val)
         } else {
             error!("Expected dict, got: {:?}", self);
-            Err(ResponseError::ExpectedDifferentPayload)
+            Err(Error::ExpectedDifferentPayload)
         }?;
 
         Ok(val.parse()?)
+    }
+
+    pub fn expect_path(self) -> Result<Utf8PathBuf, Error> {
+        let path = self.expect_string()?.into();
+        Ok(path)
+    }
+
+    pub fn expect_hex(self) -> Result<u64, Error> {
+        let hex = self.expect_string()?;
+        if let Some(hex) = hex.strip_prefix("0x") {
+            let num = u64::from_str_radix(hex, 16)?;
+            Ok(num)
+        } else {
+            Err(ParseHexError::InvalidPrefix.into())
+        }
     }
 }
