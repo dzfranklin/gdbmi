@@ -3,7 +3,7 @@ use std::{collections::HashMap, time::Duration};
 use crate::{
     parser::{self, parse_message},
     raw::{GeneralMessage, Response},
-    Error, Token,
+    Error, TimeoutError, Token,
 };
 
 use tokio::{
@@ -44,14 +44,23 @@ impl Inner {
 
         time::timeout(timeout, out_rx.recv())
             .await
-            .map_err(|_| Error::Timeout)?
+            .map_err(|_| TimeoutError)?
             .expect("out chan not closed")
     }
 
-    pub(super) async fn pop_general(&self) -> Vec<GeneralMessage> {
+    pub(super) async fn pop_general(
+        &self,
+        timeout: Duration,
+    ) -> Result<Vec<GeneralMessage>, TimeoutError> {
         let (out_tx, mut out_rx) = mpsc::channel(1);
         self.general_tx.send(out_tx).expect("Can send to mainloop");
-        out_rx.recv().await.expect("out chan not closed")
+
+        let reply = time::timeout(timeout, out_rx.recv())
+            .await
+            .map_err(|_| TimeoutError)?
+            .expect("out chan not closed");
+
+        Ok(reply)
     }
 }
 

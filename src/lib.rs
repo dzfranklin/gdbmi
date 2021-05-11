@@ -44,9 +44,21 @@ pub enum Error {
     #[error("Expected response to have message {expected}, got {actual}")]
     UnexpectedResponseMessage { expected: String, actual: String },
 
-    #[error("Timeout waiting for response")]
-    Timeout,
+    #[error(transparent)]
+    Timeout(#[from] TimeoutError),
 }
+
+#[derive(Debug, Clone, thiserror::Error, Eq, PartialEq)]
+/// Timed out waiting for a message
+///
+/// This indicates that either gdb or the actor responsible for communicating
+/// with it is busy.
+///
+/// The actor divides its time fairly between reading messages from gdb and
+/// handling requests you send to it. It may be overwhelmed if the program being
+/// debugger sends too much to stdout or stderr.
+#[error("Timed out waiting for a message")]
+pub struct TimeoutError;
 
 #[derive(Debug, Clone, thiserror::Error, displaydoc::Display, Eq, PartialEq)]
 /// Received error from gdb. Code: {code:?}, msg: {msg:?}
