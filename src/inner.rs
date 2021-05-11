@@ -83,10 +83,11 @@ async fn mainloop(
                 };
 
                 let mut input = token.serialize();
-                input.extend_from_slice(msg.as_bytes());
-                input.push(b'\n');
+                input.push_str(&msg);
+                input.push('\n');
 
-                if let Err(err) = stdin.write_all(&input).await {
+                debug!("Sending {}", input);
+                if let Err(err) = stdin.write_all(&input.as_bytes()).await {
                     error!("Failed to write, stopping: {}", err);
                     break;
                 }

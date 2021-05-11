@@ -198,8 +198,8 @@ impl Token {
         Self(rand::thread_rng().gen())
     }
 
-    pub(crate) fn serialize(&self) -> Vec<u8> {
-        format!("{}", self.0).into_bytes()
+    pub(crate) fn serialize(&self) -> String {
+        format!("{}", self.0)
     }
 }
 
