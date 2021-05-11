@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use camino::Utf8PathBuf;
-use tracing::error;
+use tracing::{error, warn};
 
 use crate::{parser, Error, GdbError, ParseHexError};
 
@@ -89,8 +89,14 @@ impl Response {
             return Err(Error::ExpectedPayload);
         };
 
-        let code = payload.remove_expect("code")?.expect_string()?;
-        let msg = payload.remove_expect("msg")?.expect_string()?;
+        let code = payload
+            .remove("code")
+            .map(Value::expect_string)
+            .transpose()?;
+        let msg = payload
+            .remove("msg")
+            .map(Value::expect_string)
+            .transpose()?;
 
         Ok(GdbError { code, msg })
     }
@@ -126,10 +132,18 @@ impl Dict {
         &mut self.0
     }
 
-    pub fn remove_expect(&mut self, key: &str) -> std::result::Result<Value, Error> {
-        self.0
-            .remove(key)
-            .map_or(Err(Error::ExpectedDifferentPayload), Ok)
+    pub fn remove_expect(&mut self, key: &str) -> Result<Value, Error> {
+        self.0.remove(key).map_or_else(
+            || {
+                warn!("Expected key {} to be present in {:?}", key, self);
+                Err(Error::ExpectedDifferentPayload)
+            },
+            Ok,
+        )
+    }
+
+    pub fn remove(&mut self, key: &str) -> Option<Value> {
+        self.0.remove(key)
     }
 }
 
@@ -202,12 +216,15 @@ impl Value {
     }
 
     pub fn expect_hex(self) -> Result<u64, Error> {
-        let hex = self.expect_string()?;
-        if let Some(hex) = hex.strip_prefix("0x") {
-            let num = u64::from_str_radix(hex, 16)?;
-            Ok(num)
-        } else {
-            Err(ParseHexError::InvalidPrefix.into())
-        }
+        parse_hex(&self.expect_string()?)
+    }
+}
+
+pub fn parse_hex(s: &str) -> Result<u64, Error> {
+    if let Some(hex) = s.strip_prefix("0x") {
+        let num = u64::from_str_radix(hex, 16)?;
+        Ok(num)
+    } else {
+        Err(ParseHexError::InvalidPrefix.into())
     }
 }

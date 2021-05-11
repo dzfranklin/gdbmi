@@ -40,23 +40,50 @@ impl LineSpec {
     }
 }
 
+// TODO: This doesn't include all the potential outputs of gdb.
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Breakpoint {
     pub number: u32,
-    pub addr: u64,
-    pub file: Utf8PathBuf,
-    pub line: u32,
+    pub addr: BreakpointAddr,
+    pub file: Option<Utf8PathBuf>,
+    pub line: Option<u32>,
     pub thread_groups: Vec<String>,
     pub times: u32,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum BreakpointAddr {
+    Addr(u64),
+    Pending,
+    Multiple,
+    Unknown,
 }
 
 impl Breakpoint {
     pub fn from_raw(mut raw: raw::Dict) -> Result<Self, Error> {
         let number = raw.remove_expect("number")?.expect_number()?;
-        let addr = raw.remove_expect("addr")?.expect_hex()?;
-        let file = raw.remove_expect("fullname")?.expect_path()?;
-        let line = raw.remove_expect("line")?.expect_number()?;
         let times = raw.remove_expect("times")?.expect_number()?;
+
+        let line = raw
+            .remove("line")
+            .map(raw::Value::expect_number)
+            .transpose()?;
+
+        let file = raw
+            .remove("fullname")
+            .map(raw::Value::expect_path)
+            .transpose()?;
+
+        let addr = if let Some(addr) = raw.as_map_mut().remove("addr") {
+            let addr = addr.expect_string()?;
+            match addr.as_str() {
+                "<PENDING>" => BreakpointAddr::Pending,
+                "<MULTIPLE>" => BreakpointAddr::Multiple,
+                addr => BreakpointAddr::Addr(raw::parse_hex(addr)?),
+            }
+        } else {
+            BreakpointAddr::Unknown
+        };
 
         let thread_groups = raw
             .remove_expect("thread-groups")?

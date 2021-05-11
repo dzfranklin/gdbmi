@@ -2418,7 +2418,13 @@ expression: symbols
     ],
     "src/main.rs": [
         Symbol {
-            line: 9,
+            line: 10,
+            name: "hello_world::HelloMsg::say",
+            symbol_type: "fn (*mut hello_world::HelloMsg)",
+            description: "static fn hello_world::HelloMsg::say(*mut hello_world::HelloMsg);",
+        },
+        Symbol {
+            line: 15,
             name: "hello_world::main",
             symbol_type: "fn ()",
             description: "static fn hello_world::main();",

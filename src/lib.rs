@@ -49,10 +49,10 @@ pub enum Error {
 }
 
 #[derive(Debug, Clone, thiserror::Error, displaydoc::Display, Eq, PartialEq)]
-/// Received error {code} from gdb: {msg}
+/// Received error from gdb. Code: {code:?}, msg: {msg:?}
 pub struct GdbError {
-    code: String,
-    msg: String,
+    code: Option<String>,
+    msg: Option<String>,
 }
 
 #[derive(Debug, Clone, thiserror::Error, Eq, PartialEq)]
@@ -104,8 +104,22 @@ impl Gdb {
         Ok(Self { inner, timeout })
     }
 
-    pub async fn run(&self) -> Result<(), Error> {
+    pub async fn exec_run(&self) -> Result<(), Error> {
         self.execute_raw("-exec-run")
+            .await?
+            .expect_result()?
+            .expect_msg_is("running")
+    }
+
+    pub async fn exec_continue(&self) -> Result<(), Error> {
+        self.execute_raw("-exec-continue")
+            .await?
+            .expect_result()?
+            .expect_msg_is("running")
+    }
+
+    pub async fn exec_continue_reverse(&self) -> Result<(), Error> {
+        self.execute_raw("-exec-continue --reverse")
             .await?
             .expect_result()?
             .expect_msg_is("running")
@@ -190,6 +204,7 @@ impl fmt::Debug for Gdb {
     }
 }
 
+// TODO: Move to inner
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct Token(pub u32);
 
@@ -209,6 +224,7 @@ mod tests {
 
     use super::*;
     use insta::assert_debug_snapshot;
+    use pretty_assertions::assert_eq;
     use test_common::{build_hello_world, init, Result, TIMEOUT};
 
     fn fixture() -> eyre::Result<Gdb> {
@@ -225,8 +241,12 @@ mod tests {
             .break_insert(LineSpec::line("samples/hello_world/src/main.rs", 13))
             .await?;
         assert_eq!(1, bp.number);
-        assert!(bp.file.ends_with("samples/hello_world/src/main.rs"));
-        assert_eq!(13, bp.line);
+        assert!(bp
+            .file
+            .as_ref()
+            .unwrap()
+            .ends_with("samples/hello_world/src/main.rs"));
+        assert_eq!(17, bp.line.unwrap());
         assert_eq!(0, bp.times);
 
         subject.break_disable(iter::once(&bp)).await?;
@@ -236,9 +256,29 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_run() -> Result {
+    async fn test_exec_continue() -> Result {
         let subject = fixture()?;
-        subject.run().await?;
+        subject.break_insert(LineSpec::function("main")).await?;
+        subject.exec_run().await?;
+        subject.exec_continue().await?;
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_exec_continue_not_running() -> Result {
+        let subject = fixture()?;
+        let error = match subject.exec_continue().await {
+            Err(Error::Gdb(error)) => error,
+            got => panic!("Expected Error::Gdb, got {:?}", got),
+        };
+        assert_eq!(error.msg.unwrap(), "The program is not being run.");
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_exec_run() -> Result {
+        let subject = fixture()?;
+        subject.exec_run().await?;
         Ok(())
     }
 
@@ -275,8 +315,8 @@ mod tests {
 
         assert_eq!(
             Error::Gdb(GdbError {
-                code: "undefined-command".into(),
-                msg: "Undefined MI command: invalid-command".into(),
+                code: Some("undefined-command".into()),
+                msg: Some("Undefined MI command: invalid-command".into()),
             }),
             err
         );
