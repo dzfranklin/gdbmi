@@ -47,6 +47,7 @@ pub fn build(name: &str) -> String {
     format!("samples/.out/{}", name)
 }
 
+#[cfg(feature = "test_rr")]
 pub fn record(name: &str) -> String {
     let trace_out = format!("samples/.trace/{}", name);
 
@@ -74,6 +75,7 @@ pub fn build_hello_world() -> String {
     build("hello_world")
 }
 
+#[cfg(feature = "test_rr")]
 pub fn record_hello_world() -> String {
     record("hello_world")
 }

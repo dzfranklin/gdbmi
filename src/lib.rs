@@ -611,10 +611,7 @@ impl Token {
 mod tests {
     use std::{collections::BTreeMap, iter};
 
-    use crate::{
-        status::{ExitReason, StopReason},
-        test_common::record_hello_world,
-    };
+    use crate::status::{ExitReason, StopReason};
 
     use super::*;
     use insta::assert_debug_snapshot;
@@ -632,7 +629,7 @@ mod tests {
     #[cfg(feature = "test_rr")]
     fn rr_fixture() -> eyre::Result<Gdb> {
         init();
-        let trace = record_hello_world();
+        let trace = crate::test_common::record_hello_world();
         Ok(GdbBuilder::rr(trace).spawn()?)
     }
 
