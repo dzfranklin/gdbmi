@@ -3,12 +3,12 @@ use std::{
 };
 
 use breakpoint::{Breakpoint, LineSpec};
-use camino::{Utf8Path, Utf8PathBuf};
+use camino::Utf8PathBuf;
 use checkpoint::Checkpoint;
 use rand::Rng;
 use status::Status;
 use tokio::{io, process, sync::mpsc, time};
-use tracing::{debug, error};
+use tracing::{debug, error, info};
 use variable::Variable;
 
 pub mod breakpoint;
@@ -34,6 +34,7 @@ pub enum Error {
 
     #[error("Expected a different payload from gdb")]
     /// Parsed, but inconsistent with what sort of payload we expected
+    /// TODO: Include the key we expected
     ExpectedDifferentPayload,
 
     #[error("Expected response to have a payload")]
@@ -84,11 +85,124 @@ pub enum ParseHexError {
     ParseInt(#[from] std::num::ParseIntError),
 }
 
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct GdbBuilder {
+    is_rust: bool,
+    time_travel: Option<BuilderTimeTravel>,
+    target: Utf8PathBuf,
+    timeout: Duration,
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+enum BuilderTimeTravel {
+    Rr,
+    Rd,
+}
+
+/// Customize the gdb process we spawn.
+///
+/// By default rust is true and the timeout is five seconds.
+///
+/// If you need even more control you can spawn the process yourself and pass it
+/// to [`Gdb::new`].
+impl GdbBuilder {
+    const DEFAULT_TIMEOUT: Duration = Duration::from_secs(5);
+
+    /// A standard gdb session, where `target` is the path to the program to
+    /// debug
+    pub fn new(target: impl Into<Utf8PathBuf>) -> Self {
+        Self {
+            is_rust: true,
+            time_travel: None,
+            timeout: Self::DEFAULT_TIMEOUT,
+            target: target.into(),
+        }
+    }
+
+    /// Replay a recording using the [time-travelling debugger rr][rr-home]
+    ///
+    /// [rr_home]: https://rr-project.org/
+    pub fn rr(trace_dir: impl Into<Utf8PathBuf>) -> Self {
+        Self {
+            is_rust: true,
+            time_travel: Some(BuilderTimeTravel::Rr),
+            timeout: Self::DEFAULT_TIMEOUT,
+            target: trace_dir.into(),
+        }
+    }
+
+    /// Replay a recording using [rd][rd-home], the Rust port of the
+    /// time-travelling debugger rr.
+    ///
+    /// At the time this was written (May 2021) had released the first alpha
+    /// version.
+    ///
+    /// [rd-home]: https://github.com/sidkshatriya/rd
+    pub fn rd(trace_dir: impl Into<Utf8PathBuf>) -> Self {
+        Self {
+            is_rust: true,
+            time_travel: Some(BuilderTimeTravel::Rd),
+            timeout: Self::DEFAULT_TIMEOUT,
+            target: trace_dir.into(),
+        }
+    }
+
+    pub fn timeout(&mut self, timeout: Duration) -> &mut Self {
+        self.timeout = timeout;
+        self
+    }
+
+    /// Whether to use the wrapper rust-gdb to provide better pretty printing.
+    pub fn rust(&mut self, is_rust: bool) -> &mut Self {
+        self.is_rust = is_rust;
+        self
+    }
+
+    pub fn spawn(&self) -> io::Result<Gdb> {
+        info!("Spawning {:?}", self);
+
+        let mut cmd = if let Some(tt) = self.time_travel {
+            let program = match tt {
+                BuilderTimeTravel::Rr => "rr",
+                BuilderTimeTravel::Rd => "rd",
+            };
+            let mut cmd = process::Command::new(program);
+            cmd.arg("replay");
+            if self.is_rust {
+                cmd.args(&["-d", "rust-gdb"]);
+            }
+            cmd.arg("--mark-stdio");
+            cmd.arg(self.target.as_str());
+            cmd.args(&["--", "--interpreter=mi3", "--quiet"]);
+            cmd
+        } else {
+            let mut cmd = if self.is_rust {
+                process::Command::new("rust-gdb")
+            } else {
+                process::Command::new("gdb")
+            };
+            cmd.args(&["--interpreter=mi3", "--quiet", self.target.as_str()]);
+            cmd
+        };
+
+        let cmd = cmd
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()?;
+
+        Ok(Gdb::new(cmd, self.timeout))
+    }
+}
+
 pub struct Gdb {
     worker: mpsc::UnboundedSender<worker::Msg>,
     timeout: Duration,
 }
 
+/// Some methods take an option timeout. If you provide `None` the default
+/// timeout will be used.
+///
 /// # Warning:
 ///
 /// **Never pass untrusted user input.**
@@ -100,80 +214,12 @@ pub struct Gdb {
 /// users mistakenly entering nonsensical inputs (like `"--type"` as a variable
 /// name), but defending against untrusted users is out-of-scope. Use a sandbox.
 impl Gdb {
-    /// Spawn a gdb process to communicate with.
+    /// Spawn a gdb process to debug `target`.
     ///
-    /// The timeout applies to all requests sent to gdb.
-    ///
-    /// We provide the arguments "--interpreter=mi3" and "--quiet" to the command.
-    ///
-    /// If you are connecting to the gdbserver in [rr][rr] start it with the
-    /// argument `--mark-stdio` so we can distinguish the process output.
-    pub fn spawn(executable: impl AsRef<Utf8Path>, timeout: Duration) -> io::Result<Self> {
-        let executable = executable.as_ref().as_str();
-        debug!(?timeout, "Spawning {}", executable);
-
-        let cmd = process::Command::new("gdb")
-            .arg("--interpreter=mi3")
-            .arg("--quiet")
-            .arg(executable)
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()?;
-
-        Ok(Self::new(cmd, timeout))
-    }
-
-    /// Like spawn, but spawns `rust-gdb` instead of `gdb`.
-    pub fn spawn_rust(executable: impl AsRef<Utf8Path>, timeout: Duration) -> io::Result<Self> {
-        let executable = executable.as_ref().as_str();
-        debug!(?timeout, "Spawning {}", executable);
-
-        let cmd = process::Command::new("rust-gdb")
-            .arg("--interpreter=mi3")
-            .arg("--quiet")
-            .arg(executable)
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()?;
-
-        Ok(Self::new(cmd, timeout))
-    }
-
-    /// Spawn the process yourself.
-    ///
-    /// You are responsible for configuring the process to speak version 3 of
-    /// GDB/MI, and setting stdin, stdout, and stderr to [`Stdio::piped`]. The
-    /// following is roughly what [`Self::spawn`] does for you.
-    ///
-    /// ```rust
-    /// # use gdbmi::Gdb;
-    /// # use std::{process::Stdio, time::Duration};
-    /// # tokio_test::block_on(async {
-    /// #
-    /// let executable = "program-to-debug";
-    /// let timeout = Duration::from_secs(5);
-    ///
-    /// let cmd = tokio::process::Command::new("gdb")
-    ///    .arg("--interpreter=mi3")
-    ///    .arg("--quiet")
-    ///    .arg(executable)
-    ///    .stdin(Stdio::piped())
-    ///    .stdout(Stdio::piped())
-    ///    .stderr(Stdio::piped())
-    ///    .spawn()?;
-    ///
-    /// let gdb = Gdb::new(cmd, timeout);
-    /// #
-    /// # Ok::<_, Box<dyn std::error::Error>>(())
-    /// # });
-    /// ```
-    ///
-    /// See [`Self::spawn`] for an explanation of `timeout`.
-    pub fn new(cmd: process::Child, timeout: Duration) -> Self {
-        let worker = worker::spawn(cmd);
-        Self { worker, timeout }
+    /// By default we use `rust-gdb` to support pretty-printing rust symbols and
+    /// a timeout of five seconds. See [`GdbBuilder`] if you need greater control.
+    pub fn spawn(target: impl Into<Utf8PathBuf>) -> io::Result<Self> {
+        GdbBuilder::new(target).spawn()
     }
 
     /// Note: The status is refreshed when gdb sends us notifications. Calling
@@ -340,6 +386,22 @@ impl Gdb {
         symbol::from_symbol_info_functions_payload(payload)
     }
 
+    /// Returns the functions whose name matches `name_regex`.
+    pub async fn symbol_info_functions_re(
+        &self,
+        name_regex: &str,
+    ) -> Result<HashMap<Utf8PathBuf, Vec<symbol::Function>>, Error> {
+        let payload = self
+            .raw_cmd(format!(
+                "-symbol-info-functions --name {}",
+                escape_arg(name_regex)
+            ))
+            .await?
+            .expect_result()?
+            .expect_payload()?;
+        symbol::from_symbol_info_functions_payload(payload)
+    }
+
     /// Save a snapshot of the current program state to come back to later.
     ///
     /// If this isn't supported you may get an unhelpful error such as
@@ -393,7 +455,7 @@ impl Gdb {
             !msg.contains('"'),
             "Cannot execute raw console command containing double quote character"
         );
-        let msg = format!(r#"-interpreter-exec console "{}""#, escape_arg(msg));
+        let msg = format!("-interpreter-exec console {}", escape_arg(msg));
 
         self.raw_cmd(msg).await
     }
@@ -412,7 +474,7 @@ impl Gdb {
         msg: impl AsRef<str>,
         capture_lines: usize,
     ) -> Result<(raw::Response, Vec<String>), Error> {
-        let msg = format!(r#"-interpreter-exec console "{}""#, escape_arg(msg));
+        let msg = format!("-interpreter-exec console {}", escape_arg(msg));
         let capture_lines = NonZeroUsize::new(capture_lines).expect("capture_lines nonzero");
 
         // Ensure no output is going to come for earlier commands
@@ -446,6 +508,41 @@ impl Gdb {
         let (out_tx, out_rx) = mpsc::channel(1);
         self.worker_send(worker::Msg::PopGeneral(out_tx));
         Self::worker_receive(out_rx, self.timeout).await
+    }
+
+    /// Spawn the process yourself.
+    ///
+    /// You are responsible for configuring the process to speak version 3 of
+    /// GDB/MI, and setting stdin, stdout, and stderr to [`Stdio::piped`]. The
+    /// following is roughly what [`Self::spawn`] does for you.
+    ///
+    /// ```rust
+    /// # use gdbmi::Gdb;
+    /// # use std::{process::Stdio, time::Duration};
+    /// # tokio_test::block_on(async {
+    /// #
+    /// let executable = "program-to-debug";
+    /// let timeout = Duration::from_secs(5);
+    ///
+    /// let cmd = tokio::process::Command::new("rust-gdb")
+    ///    .arg("--interpreter=mi3")
+    ///    .arg("--quiet")
+    ///    .arg(executable)
+    ///    .stdin(Stdio::piped())
+    ///    .stdout(Stdio::piped())
+    ///    .stderr(Stdio::piped())
+    ///    .spawn()?;
+    ///
+    /// let gdb = Gdb::new(cmd, timeout);
+    /// #
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// # });
+    /// ```
+    ///
+    /// See [`Self::spawn`] for an explanation of `timeout`.
+    pub fn new(cmd: process::Child, timeout: Duration) -> Self {
+        let worker = worker::spawn(cmd);
+        Self { worker, timeout }
     }
 
     /// Change the timeout used for all async operations
@@ -517,29 +614,71 @@ mod tests {
     use super::*;
     use insta::assert_debug_snapshot;
     use pretty_assertions::assert_eq;
-    use test_common::{build_hello_world, init, Result, TIMEOUT};
+    use test_common::{build_hello_world, init, Result};
 
     // TODO: Replace assert!(matches!) with assert_matches! when stable
 
     fn fixture() -> eyre::Result<Gdb> {
         init();
         let bin = build_hello_world();
-        Ok(Gdb::spawn_rust(bin, TIMEOUT)?)
+        Ok(Gdb::spawn(bin)?)
     }
 
+    #[cfg(feature = "test_rr")]
     fn rr_fixture() -> eyre::Result<Gdb> {
         init();
         let trace = record_hello_world();
-        let cmd = process::Command::new("rr")
-            .arg(trace)
-            .arg("--")
-            .arg("--quiet")
-            .arg("--interpreter=mi3")
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
+        Ok(GdbBuilder::rr(trace).spawn()?)
+    }
+
+    #[tokio::test]
+    async fn test_gdb_builders() -> Result {
+        let target = build_hello_world();
+        let timeout = Duration::from_secs(0);
+
+        GdbBuilder::new(&target).spawn()?;
+        GdbBuilder::new(&target).rust(false).spawn()?;
+        GdbBuilder::new(&target).timeout(timeout).spawn()?;
+        GdbBuilder::new(&target)
+            .rust(false)
+            .timeout(timeout)
             .spawn()?;
-        Ok(Gdb::new(cmd, TIMEOUT))
+
+        Ok(())
+    }
+
+    #[cfg(feature = "test_rd")]
+    #[tokio::test]
+    async fn test_rd_builders() -> Result {
+        let trace = record_hello_world();
+        let timeout = Duration::from_secs(0);
+
+        GdbBuilder::rd(&trace).spawn()?;
+        GdbBuilder::rd(&trace).rust(false).spawn()?;
+        GdbBuilder::rd(&trace).timeout(timeout).spawn()?;
+        GdbBuilder::rd(&trace)
+            .rust(false)
+            .timeout(timeout)
+            .spawn()?;
+
+        Ok(())
+    }
+
+    #[cfg(feature = "test_rr")]
+    #[tokio::test]
+    async fn test_rr_builders() -> Result {
+        let trace = record_hello_world();
+        let timeout = Duration::from_secs(0);
+
+        GdbBuilder::rr(&trace).spawn()?;
+        GdbBuilder::rr(&trace).rust(false).spawn()?;
+        GdbBuilder::rr(&trace).timeout(timeout).spawn()?;
+        GdbBuilder::rr(&trace)
+            .rust(false)
+            .timeout(timeout)
+            .spawn()?;
+
+        Ok(())
     }
 
     #[tokio::test]
@@ -562,6 +701,7 @@ mod tests {
         Ok(())
     }
 
+    #[cfg(feature = "test_rr")]
     #[tokio::test]
     async fn test_checkpoint() -> Result {
         let subject = rr_fixture()?;

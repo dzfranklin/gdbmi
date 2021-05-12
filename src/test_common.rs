@@ -3,7 +3,6 @@ use lazy_static::lazy_static;
 use std::{
     collections::HashSet,
     sync::{Mutex, Once},
-    time::Duration,
 };
 
 static INIT: Once = Once::new();
@@ -20,8 +19,6 @@ pub fn init() {
 }
 
 pub type Result = eyre::Result<()>;
-
-pub const TIMEOUT: Duration = Duration::from_secs(5);
 
 lazy_static! {
     static ref RECORDED: Mutex<HashSet<String>> = Mutex::new(HashSet::new());
