@@ -57,9 +57,20 @@ struct PendingConsole {
 }
 
 async fn mainloop(mut cmd: process::Child, mut rx: mpsc::UnboundedReceiver<Msg>) {
-    let mut stdin = cmd.stdin.take().expect("Stdin captured");
-    let mut stdout = BufReader::new(cmd.stdout.take().expect("Stdout captured"));
-    let mut stderr = BufReader::new(cmd.stderr.take().expect("Stderr captured"));
+    let mut stdin = cmd
+        .stdin
+        .take()
+        .expect("Stdin not captured. See docs of Gdb::new");
+    let mut stdout = BufReader::new(
+        cmd.stdout
+            .take()
+            .expect("Stdout not captured. See docs of Gdb::new"),
+    );
+    let mut stderr = BufReader::new(
+        cmd.stderr
+            .take()
+            .expect("Stderr not captured. See docs of Gdb::new"),
+    );
 
     let mut stdout_buf = String::new();
     let mut stderr_buf = String::new();
