@@ -1,5 +1,10 @@
 use duct::cmd;
-use std::{sync::Once, time::Duration};
+use lazy_static::lazy_static;
+use std::{
+    collections::HashSet,
+    sync::{Mutex, Once},
+    time::Duration,
+};
 
 static INIT: Once = Once::new();
 
@@ -18,10 +23,13 @@ pub type Result = eyre::Result<()>;
 
 pub const TIMEOUT: Duration = Duration::from_secs(5);
 
-static BUILD: Once = Once::new();
+lazy_static! {
+    static ref RECORDED: Mutex<HashSet<String>> = Mutex::new(HashSet::new());
+    static ref BUILT: Mutex<HashSet<String>> = Mutex::new(HashSet::new());
+}
 
-pub fn build_hello_world() -> String {
-    BUILD.call_once(|| {
+pub fn build(name: &str) -> String {
+    if !BUILT.lock().unwrap().contains(name) {
         cmd!(
             "cargo",
             "build",
@@ -30,37 +38,43 @@ pub fn build_hello_world() -> String {
             "--out-dir",
             "../.out"
         )
-        .dir("samples/hello_world")
+        .dir(format!("samples/{}", name))
         .stdin_null()
         .stdout_null()
         .stderr_null()
         .run()
         .expect("Failed to build sample");
-    });
-    "samples/.out/hello_world".into()
+        BUILT.lock().unwrap().insert(name.to_owned());
+    }
+    format!("samples/.out/{}", name)
 }
 
-static RECORD: Once = Once::new();
+pub fn record(name: &str) -> String {
+    let trace_out = format!("samples/.trace/{}", name);
+
+    if !RECORDED.lock().unwrap().contains(name) {
+        let bin = build(name);
+
+        cmd!("mkdir", "-p", "samples/.trace").run().unwrap();
+        let _result = cmd!("rm", "-rf", &trace_out).run();
+
+        cmd!("rr", "record", "--output-trace-dir", &trace_out, bin)
+            .stdin_null()
+            .stdout_null()
+            .stderr_null()
+            .run()
+            .expect("Failed to record sample");
+
+        RECORDED.lock().unwrap().insert(name.to_owned());
+    }
+
+    trace_out
+}
+
+pub fn build_hello_world() -> String {
+    build("hello_world")
+}
 
 pub fn record_hello_world() -> String {
-    RECORD.call_once(|| {
-        let bin = build_hello_world();
-
-        let _result = cmd!("rm", "-rf", "samples/.trace/hello_world").run();
-
-        cmd!(
-            "rr",
-            "record",
-            "--output-trace-dir",
-            "samples/.trace/hello_world",
-            bin
-        )
-        .stdin_null()
-        .stdout_null()
-        .stderr_null()
-        .run()
-        .expect("Failed to record sample");
-    });
-
-    "samples/.trace/hello_world".into()
+    record("hello_world")
 }
