@@ -29,7 +29,8 @@ lazy_static! {
 }
 
 pub fn build(name: &str) -> String {
-    if !BUILT.lock().unwrap().contains(name) {
+    let mut built = BUILT.lock().unwrap();
+    if !built.contains(name) {
         cmd!(
             "cargo",
             "build",
@@ -44,7 +45,7 @@ pub fn build(name: &str) -> String {
         .stderr_null()
         .run()
         .expect("Failed to build sample");
-        BUILT.lock().unwrap().insert(name.to_owned());
+        built.insert(name.to_owned());
     }
     format!("samples/.out/{}", name)
 }
@@ -52,7 +53,8 @@ pub fn build(name: &str) -> String {
 pub fn record(name: &str) -> String {
     let trace_out = format!("samples/.trace/{}", name);
 
-    if !RECORDED.lock().unwrap().contains(name) {
+    let mut recorded = RECORDED.lock().unwrap();
+    if !recorded.contains(name) {
         let bin = build(name);
 
         cmd!("mkdir", "-p", "samples/.trace").run().unwrap();
@@ -65,7 +67,7 @@ pub fn record(name: &str) -> String {
             .run()
             .expect("Failed to record sample");
 
-        RECORDED.lock().unwrap().insert(name.to_owned());
+        recorded.insert(name.to_owned());
     }
 
     trace_out
