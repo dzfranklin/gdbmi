@@ -349,7 +349,7 @@ mod tests {
         let status = subject.next_status(Status::Running, None).await?;
         assert_eq!(
             Status::Stopped {
-                reason: StoppedReason::ExitedNormally
+                reason: Some(StoppedReason::ExitedNormally)
             },
             status
         );
@@ -372,11 +372,11 @@ mod tests {
         let status = subject.next_status(status, None).await?;
         if let Status::Stopped {
             reason:
-                StoppedReason::Breakpoint {
+                Some(StoppedReason::Breakpoint {
                     break_num,
                     function,
                     ..
-                },
+                }),
         } = &status
         {
             assert_eq!(1, *break_num);
@@ -393,7 +393,7 @@ mod tests {
         let status = subject.next_status(status, None).await?;
         assert_eq!(
             Status::Stopped {
-                reason: StoppedReason::ExitedNormally
+                reason: Some(StoppedReason::ExitedNormally)
             },
             status
         );

@@ -6,7 +6,7 @@ use crate::{raw, Error};
 pub enum Status {
     Unstarted,
     Running,
-    Stopped { reason: StoppedReason },
+    Stopped { reason: Option<StoppedReason> },
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -89,37 +89,42 @@ impl Status {
 }
 
 impl StoppedReason {
-    fn from_payload(mut payload: raw::Dict) -> Result<Self, Error> {
-        let reason = payload.remove_expect("reason")?.expect_string()?;
+    fn from_payload(mut payload: raw::Dict) -> Result<Option<Self>, Error> {
+        let reason = if let Some(reason) = payload.remove("reason") {
+            reason.expect_string()?
+        } else {
+            return Ok(None);
+        };
+
         match reason.as_str() {
             "breakpoint-hit" => {
                 let break_num = payload.remove_expect("bkptno")?.expect_number()?;
                 let mut frame = payload.remove_expect("frame")?.expect_dict()?;
                 let address = frame.remove_expect("addr")?.expect_hex()?;
                 let function = frame.remove_expect("func")?.expect_string()?;
-                Ok(Self::Breakpoint {
+                Ok(Some(Self::Breakpoint {
                     break_num,
                     address,
                     function,
-                })
+                }))
             }
-            "watchpoint-trigger" => Ok(Self::Watchpoint),
-            "read-watchpoint-trigger" => Ok(Self::ReadWatchpoint),
-            "access-watchpoint-trigger" => Ok(Self::AccessWatchpoint),
-            "function-finished" => Ok(Self::FunctionFinished),
-            "location-reached" => Ok(Self::LocationReached),
-            "watchpoint-scope" => Ok(Self::WatchpointScope),
-            "end-stepping-range" => Ok(Self::EndSteppingRange),
-            "exited-signalled" => Ok(Self::ExitSignalled),
-            "exited" => Ok(Self::Exited),
-            "exited-normally" => Ok(Self::ExitedNormally),
-            "signal-received" => Ok(Self::SignalReceived),
-            "solib-event" => Ok(Self::SolibEvent),
-            "fork" => Ok(Self::Fork),
-            "vfork" => Ok(Self::VFork),
-            "syscall-entry" => Ok(Self::SyscallEntry),
-            "syscall-return" => Ok(Self::SyscallReturn),
-            "exec" => Ok(Self::Exec),
+            "watchpoint-trigger" => Ok(Some(Self::Watchpoint)),
+            "read-watchpoint-trigger" => Ok(Some(Self::ReadWatchpoint)),
+            "access-watchpoint-trigger" => Ok(Some(Self::AccessWatchpoint)),
+            "function-finished" => Ok(Some(Self::FunctionFinished)),
+            "location-reached" => Ok(Some(Self::LocationReached)),
+            "watchpoint-scope" => Ok(Some(Self::WatchpointScope)),
+            "end-stepping-range" => Ok(Some(Self::EndSteppingRange)),
+            "exited-signalled" => Ok(Some(Self::ExitSignalled)),
+            "exited" => Ok(Some(Self::Exited)),
+            "exited-normally" => Ok(Some(Self::ExitedNormally)),
+            "signal-received" => Ok(Some(Self::SignalReceived)),
+            "solib-event" => Ok(Some(Self::SolibEvent)),
+            "fork" => Ok(Some(Self::Fork)),
+            "vfork" => Ok(Some(Self::VFork)),
+            "syscall-entry" => Ok(Some(Self::SyscallEntry)),
+            "syscall-return" => Ok(Some(Self::SyscallReturn)),
+            "exec" => Ok(Some(Self::Exec)),
             _ => {
                 error!("Unexpected stop reason: {}", reason);
                 Err(Error::ExpectedDifferentPayload)
