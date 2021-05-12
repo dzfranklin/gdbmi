@@ -105,7 +105,24 @@ impl Gdb {
         Ok(Self::new(cmd, timeout))
     }
 
-    /// Communicate with the provided process.
+    /// Like spawn, but spawns `rust-gdb` instead of `gdb`.
+    pub fn spawn_rust(executable: impl AsRef<Utf8Path>, timeout: Duration) -> io::Result<Self> {
+        let executable = executable.as_ref().as_str();
+        debug!(?timeout, "Spawning {}", executable);
+
+        let cmd = process::Command::new("rust-gdb")
+            .arg("--interpreter=mi3")
+            .arg("--quiet")
+            .arg(executable)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()?;
+
+        Ok(Self::new(cmd, timeout))
+    }
+
+    /// Spawn the process yourself.
     ///
     /// You are responsible for configuring the process to speak version 3 of
     /// GDB/MI, and setting stdin, stdout, and stderr to [`Stdio::piped`]. The
