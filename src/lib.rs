@@ -346,12 +346,20 @@ mod tests {
         assert_eq!(Status::Running, status);
 
         let status = subject.next_status(status, None).await?;
-        assert_eq!(
-            Status::Stopped {
-                reason: StoppedReason::Breakpoint
-            },
-            status
-        );
+        if let Status::Stopped {
+            reason:
+                StoppedReason::Breakpoint {
+                    break_num,
+                    function,
+                    ..
+                },
+        } = &status
+        {
+            assert_eq!(1, *break_num);
+            assert_eq!("main", function);
+        } else {
+            panic!("Expected stopped at breakpoint");
+        }
 
         subject.exec_continue().await?;
 

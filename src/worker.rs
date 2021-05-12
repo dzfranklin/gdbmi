@@ -82,7 +82,7 @@ async fn mainloop(mut cmd: process::Child, mut rx: mpsc::UnboundedReceiver<Msg>)
                     }
 
                     Msg::Status(out) => {
-                        if let Err(err) = out.send(status).await {
+                        if let Err(err) = out.send(status.clone()).await {
                             error!("Failed to send status to out chan: {}", err);
                         }
                     }
@@ -94,7 +94,7 @@ async fn mainloop(mut cmd: process::Child, mut rx: mpsc::UnboundedReceiver<Msg>)
                                 actual = ?status,
                                 "Caller's believed current status incorrect, sending them the current status"
                             );
-                            if let Err(err) = out.send(status).await {
+                            if let Err(err) = out.send(status.clone()).await {
                                 error!("Failed to send status to out chan: {}", err);
                             }
                         } else {
@@ -134,7 +134,7 @@ async fn mainloop(mut cmd: process::Child, mut rx: mpsc::UnboundedReceiver<Msg>)
                                         status = new_status;
                                         info!("New status {:?}, notifying {} watchers", status, notify_next_status.len());
                                         for out in notify_next_status.drain(..) {
-                                            if let Err(err) = out.send(status).await {
+                                            if let Err(err) = out.send(status.clone()).await {
                                                 error!("Failed to notify next status to out chan: {}", err);
                                             }
                                         }

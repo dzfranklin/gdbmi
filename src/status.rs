@@ -2,17 +2,21 @@ use tracing::error;
 
 use crate::{raw, Error};
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum Status {
     Unstarted,
     Running,
     Stopped { reason: StoppedReason },
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum StoppedReason {
     /// A breakpoint was reached
-    Breakpoint,
+    Breakpoint {
+        break_num: u32,
+        address: u64,
+        function: String,
+    },
     /// A watchpoint was triggered
     Watchpoint,
     /// A read watchpoint was triggered
@@ -88,7 +92,17 @@ impl StoppedReason {
     fn from_payload(mut payload: raw::Dict) -> Result<Self, Error> {
         let reason = payload.remove_expect("reason")?.expect_string()?;
         match reason.as_str() {
-            "breakpoint-hit" => Ok(Self::Breakpoint),
+            "breakpoint-hit" => {
+                let break_num = payload.remove_expect("bkptno")?.expect_number()?;
+                let mut frame = payload.remove_expect("frame")?.expect_dict()?;
+                let address = frame.remove_expect("addr")?.expect_hex()?;
+                let function = frame.remove_expect("func")?.expect_string()?;
+                Ok(Self::Breakpoint {
+                    break_num,
+                    address,
+                    function,
+                })
+            }
             "watchpoint-trigger" => Ok(Self::Watchpoint),
             "read-watchpoint-trigger" => Ok(Self::ReadWatchpoint),
             "access-watchpoint-trigger" => Ok(Self::AccessWatchpoint),
