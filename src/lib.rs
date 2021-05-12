@@ -387,6 +387,11 @@ impl Gdb {
     }
 
     /// Returns the functions whose name matches `name_regex`.
+    ///
+    /// Gdb by default counts matches against substrings. For example,
+    /// `my_crate::` will match `core::ptr::drop_in_place<simple::DraftPost>`
+    /// (the monomorphic version of a standard library function). If you only
+    /// want to match functions in `my_crate`, pass `^my_crate::`.
     pub async fn symbol_info_functions_re(
         &self,
         name_regex: &str,
