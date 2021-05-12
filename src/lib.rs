@@ -108,7 +108,31 @@ impl Gdb {
     /// Communicate with the provided process.
     ///
     /// You are responsible for configuring the process to speak version 3 of
-    /// GDB/MI (provide --interpreter=mi3 to gdb).await
+    /// GDB/MI, and setting stdin, stdout, and stderr to [`Stdio::piped`]. The
+    /// following is roughly what [`Self::spawn`] does for you.
+    ///
+    /// ```rust
+    /// # use gdbmi::Gdb;
+    /// # use std::{process::Stdio, time::Duration};
+    /// # tokio_test::block_on(async {
+    /// #
+    /// let executable = "program-to-debug";
+    /// let timeout = Duration::from_secs(5);
+    ///
+    /// let cmd = tokio::process::Command::new("gdb")
+    ///    .arg("--interpreter=mi3")
+    ///    .arg("--quiet")
+    ///    .arg(executable)
+    ///    .stdin(Stdio::piped())
+    ///    .stdout(Stdio::piped())
+    ///    .stderr(Stdio::piped())
+    ///    .spawn()?;
+    ///
+    /// let gdb = Gdb::new(cmd, timeout);
+    /// #
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// # });
+    /// ```
     ///
     /// See [`Self::spawn`] for an explanation of `timeout`.
     pub fn new(cmd: process::Child, timeout: Duration) -> Self {
