@@ -39,3 +39,28 @@ pub fn build_hello_world() -> String {
     });
     "samples/.out/hello_world".into()
 }
+
+static RECORD: Once = Once::new();
+
+pub fn record_hello_world() -> String {
+    RECORD.call_once(|| {
+        let bin = build_hello_world();
+
+        let _result = cmd!("rm", "-rf", "samples/.trace/hello_world").run();
+
+        cmd!(
+            "rr",
+            "record",
+            "--output-trace-dir",
+            "samples/.trace/hello_world",
+            bin
+        )
+        .stdin_null()
+        .stdout_null()
+        .stderr_null()
+        .run()
+        .expect("Failed to record sample");
+    });
+
+    "samples/.trace/hello_world".into()
+}

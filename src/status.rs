@@ -1,22 +1,31 @@
+use camino::Utf8PathBuf;
 use tracing::error;
 
 use crate::{raw, Error};
 
 #[derive(Debug, Clone, Eq, PartialEq)]
+/// Note: If the program stops because of a signal like SIGKILL you will get a
+/// Status::Stopped.
 pub enum Status {
     Unstarted,
     Running,
-    Stopped { reason: Option<StoppedReason> },
+    Stopped(Stopped),
+    Exited(ExitReason),
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub enum StoppedReason {
+pub struct Stopped {
+    pub reason: Option<StopReason>,
+    pub address: u64,
+    pub function: Option<String>,
+    pub file: Option<Utf8PathBuf>,
+    pub line: Option<u32>,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum StopReason {
     /// A breakpoint was reached
-    Breakpoint {
-        break_num: u32,
-        address: u64,
-        function: String,
-    },
+    Breakpoint { number: u32 },
     /// A watchpoint was triggered
     Watchpoint,
     /// A read watchpoint was triggered
@@ -32,12 +41,6 @@ pub enum StoppedReason {
     /// An -exec-next, -exec-next-instruction, -exec-step,
     /// -exec-step-instruction or similar CLI command was accomplished
     EndSteppingRange,
-    /// The inferior exited because of a signal
-    ExitSignalled,
-    /// The inferior exited
-    Exited,
-    /// The inferior exited normally
-    ExitedNormally,
     /// A signal was received by the inferior
     SignalReceived,
     /// The inferior has stopped due to a library being loaded or unloaded.
@@ -67,16 +70,23 @@ pub enum StoppedReason {
     Exec,
 }
 
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum ExitReason {
+    /// The inferior exited because of a signal
+    Signal,
+    /// The inferior exited normally
+    Normal,
+    /// No information available besides that the inferior exited
+    Other,
+}
+
 impl Status {
     pub(crate) fn from_notification(message: &str, payload: raw::Dict) -> Option<Self> {
         match message {
             "running" => Some(Status::Running),
             "stopped" => {
-                match StoppedReason::from_payload(payload) {
-                    Ok(reason) => {
-                        let new = Status::Stopped { reason };
-                        Some(new)
-                    }
+                match Self::parse_msg_stopped(payload) {
+                    Ok(status) => Some(status),
                     Err(err) => {
                         error!("Got a notification that looks like a status, but failed to process: {}", err);
                         None
@@ -86,49 +96,91 @@ impl Status {
             _ => None,
         }
     }
-}
 
-impl StoppedReason {
-    fn from_payload(mut payload: raw::Dict) -> Result<Option<Self>, Error> {
-        let reason = if let Some(reason) = payload.remove("reason") {
-            reason.expect_string()?
+    fn parse_msg_stopped(mut payload: raw::Dict) -> Result<Self, Error> {
+        let reason = if let Some(reason) = payload
+            .remove("reason")
+            .map(raw::Value::expect_string)
+            .transpose()?
+        {
+            reason
         } else {
-            return Ok(None);
+            return Self::stopped_from_payload(None, payload);
         };
 
         match reason.as_str() {
             "breakpoint-hit" => {
-                let break_num = payload.remove_expect("bkptno")?.expect_number()?;
-                let mut frame = payload.remove_expect("frame")?.expect_dict()?;
-                let address = frame.remove_expect("addr")?.expect_hex()?;
-                let function = frame.remove_expect("func")?.expect_string()?;
-                Ok(Some(Self::Breakpoint {
-                    break_num,
-                    address,
-                    function,
-                }))
+                let number = payload.remove_expect("bkptno")?.expect_number()?;
+                Self::stopped_from_payload(Some(StopReason::Breakpoint { number }), payload)
             }
-            "watchpoint-trigger" => Ok(Some(Self::Watchpoint)),
-            "read-watchpoint-trigger" => Ok(Some(Self::ReadWatchpoint)),
-            "access-watchpoint-trigger" => Ok(Some(Self::AccessWatchpoint)),
-            "function-finished" => Ok(Some(Self::FunctionFinished)),
-            "location-reached" => Ok(Some(Self::LocationReached)),
-            "watchpoint-scope" => Ok(Some(Self::WatchpointScope)),
-            "end-stepping-range" => Ok(Some(Self::EndSteppingRange)),
-            "exited-signalled" => Ok(Some(Self::ExitSignalled)),
-            "exited" => Ok(Some(Self::Exited)),
-            "exited-normally" => Ok(Some(Self::ExitedNormally)),
-            "signal-received" => Ok(Some(Self::SignalReceived)),
-            "solib-event" => Ok(Some(Self::SolibEvent)),
-            "fork" => Ok(Some(Self::Fork)),
-            "vfork" => Ok(Some(Self::VFork)),
-            "syscall-entry" => Ok(Some(Self::SyscallEntry)),
-            "syscall-return" => Ok(Some(Self::SyscallReturn)),
-            "exec" => Ok(Some(Self::Exec)),
-            _ => {
+            "watchpoint-trigger" => {
+                Self::stopped_from_payload(Some(StopReason::Watchpoint), payload)
+            }
+            "read-watchpoint-trigger" => {
+                Self::stopped_from_payload(Some(StopReason::ReadWatchpoint), payload)
+            }
+            "access-watchpoint-trigger" => {
+                Self::stopped_from_payload(Some(StopReason::AccessWatchpoint), payload)
+            }
+            "function-finished" => {
+                Self::stopped_from_payload(Some(StopReason::FunctionFinished), payload)
+            }
+            "location-reached" => {
+                Self::stopped_from_payload(Some(StopReason::LocationReached), payload)
+            }
+            "watchpoint-scope" => {
+                Self::stopped_from_payload(Some(StopReason::WatchpointScope), payload)
+            }
+            "end-stepping-range" => {
+                Self::stopped_from_payload(Some(StopReason::EndSteppingRange), payload)
+            }
+            "signal-received" => {
+                Self::stopped_from_payload(Some(StopReason::SignalReceived), payload)
+            }
+            "solib-event" => Self::stopped_from_payload(Some(StopReason::SolibEvent), payload),
+            "fork" => Self::stopped_from_payload(Some(StopReason::Fork), payload),
+            "vfork" => Self::stopped_from_payload(Some(StopReason::VFork), payload),
+            "syscall-entry" => Self::stopped_from_payload(Some(StopReason::SyscallEntry), payload),
+            "syscall-return" => {
+                Self::stopped_from_payload(Some(StopReason::SyscallReturn), payload)
+            }
+            "exec" => Self::stopped_from_payload(Some(StopReason::Exec), payload),
+            "exited-signalled" => Ok(Self::Exited(ExitReason::Signal)),
+            "exited" => Ok(Self::Exited(ExitReason::Other)),
+            "exited-normally" => Ok(Self::Exited(ExitReason::Normal)),
+            reason => {
                 error!("Unexpected stop reason: {}", reason);
-                Err(Error::ExpectedDifferentPayload)
+                return Err(Error::ExpectedDifferentPayload);
             }
         }
+    }
+
+    fn stopped_from_payload(
+        reason: Option<StopReason>,
+        mut payload: raw::Dict,
+    ) -> Result<Status, Error> {
+        let mut frame = payload.remove_expect("frame")?.expect_dict()?;
+
+        let address = frame.remove_expect("addr")?.expect_hex()?;
+        let function = frame
+            .remove("func")
+            .map(raw::Value::expect_string)
+            .transpose()?;
+        let file = frame
+            .remove("file")
+            .map(raw::Value::expect_path)
+            .transpose()?;
+        let line = frame
+            .remove("line")
+            .map(raw::Value::expect_number)
+            .transpose()?;
+
+        Ok(Status::Stopped(Stopped {
+            reason,
+            address,
+            function,
+            file,
+            line,
+        }))
     }
 }

@@ -1,18 +1,24 @@
-use std::{collections::HashMap, fmt, process::Stdio, time::Duration};
+use std::{
+    borrow::Cow, collections::HashMap, fmt, num::NonZeroUsize, process::Stdio, time::Duration,
+};
 
 use breakpoint::{Breakpoint, LineSpec};
 use camino::{Utf8Path, Utf8PathBuf};
+use checkpoint::Checkpoint;
 use rand::Rng;
 use status::Status;
 use tokio::{io, process, sync::mpsc, time};
 use tracing::{debug, error};
+use variable::Variable;
 
 pub mod breakpoint;
+pub mod checkpoint;
 pub mod parser;
 pub mod raw;
 pub mod status;
 mod string_stream;
 pub mod symbol;
+pub mod variable;
 mod worker;
 
 #[cfg(test)]
@@ -41,6 +47,9 @@ pub enum Error {
 
     #[error("Expected response to have message {expected}, got {actual}")]
     UnexpectedResponseMessage { expected: String, actual: String },
+
+    #[error("Expected different console output in reply to command")]
+    ExpectedDifferentConsole,
 
     #[error(transparent)]
     Timeout(#[from] TimeoutError),
@@ -187,22 +196,52 @@ impl Gdb {
         Self::worker_receive(out_rx, timeout).await
     }
 
+    pub async fn await_stopped(
+        &self,
+        timeout: Option<Duration>,
+    ) -> Result<status::Stopped, TimeoutError> {
+        let status = self
+            .await_status(|s| matches!(s, Status::Stopped(_)), timeout)
+            .await?;
+        match status {
+            Status::Stopped(status) => Ok(status),
+            _ => unreachable!(),
+        }
+    }
+
+    pub async fn await_status<P>(
+        &self,
+        pred: P,
+        timeout: Option<Duration>,
+    ) -> Result<Status, TimeoutError>
+    where
+        P: Fn(&Status) -> bool + Send + Sync + 'static,
+    {
+        let timeout = timeout.unwrap_or(self.timeout);
+        let (out_tx, out_rx) = mpsc::channel(1);
+        self.worker_send(worker::Msg::AwaitStatus {
+            pred: Box::new(pred),
+            out: out_tx,
+        });
+        Self::worker_receive(out_rx, timeout).await
+    }
+
     pub async fn exec_run(&self) -> Result<(), Error> {
-        self.execute_raw("-exec-run")
+        self.raw_cmd("-exec-run")
             .await?
             .expect_result()?
             .expect_msg_is("running")
     }
 
     pub async fn exec_continue(&self) -> Result<(), Error> {
-        self.execute_raw("-exec-continue")
+        self.raw_cmd("-exec-continue")
             .await?
             .expect_result()?
             .expect_msg_is("running")
     }
 
     pub async fn exec_continue_reverse(&self) -> Result<(), Error> {
-        self.execute_raw("-exec-continue --reverse")
+        self.raw_cmd("-exec-continue --reverse")
             .await?
             .expect_result()?
             .expect_msg_is("running")
@@ -210,7 +249,7 @@ impl Gdb {
 
     pub async fn break_insert(&self, at: LineSpec) -> Result<Breakpoint, Error> {
         let raw = self
-            .execute_raw(format!("-break-insert {}", at.serialize()))
+            .raw_cmd(format!("-break-insert {}", at.serialize()))
             .await?
             .expect_result()?
             .expect_payload()?
@@ -229,7 +268,7 @@ impl Gdb {
             raw.push_str(&format!("{} ", bp.number));
         }
 
-        self.execute_raw(format!("-break-disable {}", raw))
+        self.raw_cmd(format!("-break-disable {}", raw))
             .await?
             .expect_result()?
             .expect_msg_is("done")
@@ -244,27 +283,80 @@ impl Gdb {
             raw.push_str(&format!("{} ", bp.number));
         }
 
-        self.execute_raw(format!("-break-delete {}", raw))
+        self.raw_cmd(format!("-break-delete {}", raw))
             .await?
             .expect_result()?
             .expect_msg_is("done")
+    }
+
+    /// If `max` is provided, don't count beyond it.
+    pub async fn stack_depth(&self, max: Option<u32>) -> Result<u32, Error> {
+        let msg = if let Some(max) = max {
+            Cow::Owned(format!("-stack-info-depth {}", max))
+        } else {
+            Cow::Borrowed("-stack-info-depth")
+        };
+        self.raw_cmd(msg)
+            .await?
+            .expect_result()?
+            .expect_payload()?
+            .remove_expect("depth")?
+            .expect_number()
+    }
+
+    /// List the arguments and local variables in the current stack frame.
+    ///
+    /// Complex variables (structs, arrays, and unions) will not have a type.
+    ///
+    /// If `frame_filters` is false python frame filters will be skipped
+    pub async fn stack_list_variables(&self, frame_filters: bool) -> Result<Vec<Variable>, Error> {
+        let msg = if frame_filters {
+            "-stack-list-variables --simple-values"
+        } else {
+            "-stack-list-variables --no-frame-filters --simple-values"
+        };
+        let payload = self.raw_cmd(msg).await?.expect_result()?.expect_payload()?;
+        variable::from_stack_list(payload)
     }
 
     pub async fn symbol_info_functions(
         &self,
     ) -> Result<HashMap<Utf8PathBuf, Vec<symbol::Function>>, Error> {
         let payload = self
-            .execute_raw("-symbol-info-functions")
+            .raw_cmd("-symbol-info-functions")
             .await?
             .expect_result()?
             .expect_payload()?;
         symbol::from_symbol_info_functions_payload(payload)
     }
 
+    /// Save a snapshot of the current program state to come back to later.
+    ///
+    /// If this isn't supported you may get an unhelpful error such as
+    ///
+    /// ```plain
+    /// syntax error in expression, near `lseek (0, 0, 1)'.
+    /// ```
+    ///
+    /// I use this with the time travelling debugger rr, as gdb on my machine
+    /// doesn't support snapshots.
+    pub async fn save_checkpoint(&self) -> Result<Checkpoint, Error> {
+        let (resp, lines) = self.raw_console_cmd_for_output("checkpoint", 1).await?;
+        resp.expect_result()?.expect_msg_is("done")?;
+        checkpoint::parse_save_line(&lines[0])
+    }
+
+    pub async fn goto_checkpoint(&self, checkpoint: Checkpoint) -> Result<(), Error> {
+        self.raw_console_cmd(format!("restart {}", checkpoint.0))
+            .await?
+            .expect_result()?
+            .expect_msg_is("running")
+    }
+
     /// Execute a command for a response.
     ///
     /// Your command will be prefixed with a token and suffixed with a newline.
-    pub async fn execute_raw(&self, msg: impl Into<String>) -> Result<raw::Response, Error> {
+    pub async fn raw_cmd(&self, msg: impl Into<String>) -> Result<raw::Response, Error> {
         let token = Token::generate();
         let (out_tx, out_rx) = mpsc::channel(1);
         self.worker_send(worker::Msg::Cmd {
@@ -275,12 +367,77 @@ impl Gdb {
         Self::worker_receive(out_rx, self.timeout).await?
     }
 
+    /// Execute a console command for a given number of lines of console output.
+    ///
+    /// Console commands are the commands you enter in a normal GDB session,
+    /// in contrast to the GDB/MI commands designed for programmatic use.
+    ///
+    /// You will need to use this function if the command you need isn't
+    /// supported by GDB/MI.
+    ///
+    /// If you need to see the output, use
+    /// [`Self::execute_raw_console_for_output`].
+    ///
+    /// # Panics
+    /// - `msg` contains a double quote character `"`
+    ///     (I'm not sure if it's possible to escape this)
+    pub async fn raw_console_cmd(&self, msg: impl Into<String>) -> Result<raw::Response, Error> {
+        let msg = msg.into();
+        assert!(
+            !msg.contains('"'),
+            "Cannot execute raw console command containing double quote character"
+        );
+        let msg = format!(r#"-interpreter-exec console "{}""#, msg);
+
+        self.raw_cmd(msg).await
+    }
+
+    /// Prefer [`Self::execute_raw_console`] if possible.
+    ///
+    /// Avoid capturing more lines than you need to. Because console output
+    /// can't be associated with a command we assume the next `capture_lines` of
+    /// output should go to the caller. This means we  need to block anyone else
+    /// from communicating with to GDB until the lines are received or you timeout.
+    ///
+    /// # Panics
+    /// - `msg` contains a double quote character `"`
+    ///     (I'm not sure if it's possible to escape this)
+    /// - `capture_lines` is zero
+    pub async fn raw_console_cmd_for_output(
+        &self,
+        msg: impl Into<String>,
+        capture_lines: usize,
+    ) -> Result<(raw::Response, Vec<String>), Error> {
+        let msg = msg.into();
+        assert!(
+            !msg.contains('"'),
+            "Cannot execute raw console command containing double quote character"
+        );
+        let msg = format!(r#"-interpreter-exec console "{}""#, msg);
+        let capture_lines = NonZeroUsize::new(capture_lines).expect("capture_lines nonzero");
+
+        // Ensure no output is going to come for earlier commands
+        self.await_ready().await?;
+
+        let token = Token::generate();
+        let (out_tx, out_rx) = mpsc::channel(1);
+
+        self.worker_send(worker::Msg::ConsoleCmd {
+            token,
+            msg,
+            out: out_tx,
+            capture_lines,
+        });
+
+        Self::worker_receive(out_rx, self.timeout).await?
+    }
+
     /// Waits until gdb is responsive to commands.
     ///
     /// You do not need to call this before sending commands yourself.
     pub async fn await_ready(&self) -> Result<(), Error> {
         // Arbitrary command, chosen because its output isn't too big
-        self.execute_raw("-list-target-features").await?;
+        self.raw_cmd("-list-target-features").await?;
         Ok(())
     }
 
@@ -335,17 +492,108 @@ impl Token {
 mod tests {
     use std::{collections::BTreeMap, iter};
 
-    use crate::status::StoppedReason;
+    use crate::{
+        status::{ExitReason, StopReason},
+        test_common::record_hello_world,
+    };
 
     use super::*;
     use insta::assert_debug_snapshot;
     use pretty_assertions::assert_eq;
     use test_common::{build_hello_world, init, Result, TIMEOUT};
 
+    // TODO: Replace assert!(matches!) with assert_matches! when stable
+
     fn fixture() -> eyre::Result<Gdb> {
         init();
         let bin = build_hello_world();
-        Ok(Gdb::spawn(bin, TIMEOUT)?)
+        Ok(Gdb::spawn_rust(bin, TIMEOUT)?)
+    }
+
+    fn rr_fixture() -> eyre::Result<Gdb> {
+        init();
+        let trace = record_hello_world();
+        let cmd = process::Command::new("rr")
+            .arg(trace)
+            .arg("--")
+            .arg("--quiet")
+            .arg("--interpreter=mi3")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()?;
+        Ok(Gdb::new(cmd, TIMEOUT))
+    }
+
+    #[tokio::test]
+    async fn test_stack() -> Result {
+        let subject = fixture()?;
+        subject
+            .break_insert(LineSpec::function("hello_world::HelloMsg::say"))
+            .await?;
+        subject.exec_run().await?;
+        subject.await_stopped(None).await?;
+
+        assert_eq!(2, subject.stack_depth(None).await?);
+
+        let vars = subject.stack_list_variables(false).await?;
+        assert_eq!(1, vars.len());
+        assert_eq!("self", vars[0].name);
+        assert_eq!("*mut hello_world::HelloMsg", vars[0].var_type);
+        assert!(vars[0].value.is_some());
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_checkpoint() -> Result {
+        let subject = rr_fixture()?;
+        subject
+            .break_insert(LineSpec::function("hello_world::main"))
+            .await?;
+        subject.exec_continue().await?;
+
+        let status_at_check = subject.await_stopped(None).await?;
+        assert!(matches!(
+            &status_at_check.reason,
+            &Some(StopReason::Breakpoint { .. })
+        ));
+        let addr_at_check = status_at_check.address;
+        let check = subject.save_checkpoint().await?;
+        assert_eq!(Checkpoint(1), check);
+
+        subject.exec_continue().await?;
+
+        subject
+            .await_status(|s| matches!(s, &Status::Stopped { .. }), None)
+            .await?;
+
+        subject.goto_checkpoint(check).await?;
+        assert_eq!(addr_at_check, subject.await_stopped(None).await?.address);
+
+        subject.exec_continue().await?;
+        assert_eq!(
+            Some(StopReason::SignalReceived),
+            subject.await_stopped(None).await?.reason
+        );
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_raw_console_for_out() -> Result {
+        let subject = fixture()?;
+
+        subject
+            .break_insert(LineSpec::function("hello_world::main"))
+            .await?;
+        subject.exec_run().await?;
+
+        let (resp, lines) = subject.raw_console_cmd_for_output("info locals", 1).await?;
+        resp.expect_result()?.expect_msg_is("done")?;
+        assert_eq!(vec!["No locals.\\n"], lines);
+
+        Ok(())
     }
 
     #[tokio::test]
@@ -364,12 +612,7 @@ mod tests {
 
         subject.exec_run().await?;
         let status = subject.next_status(Status::Running, None).await?;
-        assert_eq!(
-            Status::Stopped {
-                reason: Some(StoppedReason::ExitedNormally)
-            },
-            status
-        );
+        assert_eq!(status, Status::Exited(ExitReason::Normal));
         Ok(())
     }
 
@@ -387,20 +630,14 @@ mod tests {
         assert_eq!(Status::Running, status);
 
         let status = subject.next_status(status, None).await?;
-        if let Status::Stopped {
-            reason:
-                Some(StoppedReason::Breakpoint {
-                    break_num,
-                    function,
-                    ..
-                }),
-        } = &status
-        {
-            assert_eq!(1, *break_num);
-            assert_eq!("main", function);
-        } else {
-            panic!("Expected stopped at breakpoint");
-        }
+        assert!(matches!(
+            &status,
+            &Status::Stopped(status::Stopped {
+                reason: Some(StopReason::Breakpoint { number }),
+                function: Some(ref function),
+                ..
+            }) if number == 1 && function == "main"
+        ));
 
         subject.exec_continue().await?;
 
@@ -408,12 +645,7 @@ mod tests {
         assert_eq!(Status::Running, status);
 
         let status = subject.next_status(status, None).await?;
-        assert_eq!(
-            Status::Stopped {
-                reason: Some(StoppedReason::ExitedNormally)
-            },
-            status
-        );
+        assert_eq!(status, Status::Exited(ExitReason::Normal));
 
         Ok(())
     }
@@ -486,7 +718,7 @@ mod tests {
     #[tokio::test]
     async fn test_pop_general() -> Result {
         let subject = fixture()?;
-        subject.execute_raw("-gdb-version").await?;
+        subject.raw_cmd("-gdb-version").await?;
         let general = subject.pop_general().await?;
         assert!(!general.is_empty());
         Ok(())
@@ -496,7 +728,7 @@ mod tests {
     async fn test_invalid_command() -> Result {
         let subject = fixture()?;
 
-        let err = subject.execute_raw("-invalid-command").await.unwrap_err();
+        let err = subject.raw_cmd("-invalid-command").await.unwrap_err();
 
         assert_eq!(
             Error::Gdb(GdbError {
