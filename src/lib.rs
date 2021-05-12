@@ -1,3 +1,6 @@
+/// A client for GDB/MI, the GDB machine interface.
+///
+/// gdbmi requires a tokio runtime.
 use std::{
     borrow::Cow, collections::HashMap, fmt, num::NonZeroUsize, process::Stdio, time::Duration,
 };
