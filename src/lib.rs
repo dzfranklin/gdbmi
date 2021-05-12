@@ -89,6 +89,16 @@ pub struct Gdb {
     timeout: Duration,
 }
 
+/// # Warning:
+///
+/// **Never pass untrusted user input.**
+///
+/// GDB is designed around the assumption the user is running it on their own
+/// machine, and therefore doesn't need to be defended against.
+///
+/// We do some escaping before passing inputs to GDB to try and protect against
+/// users mistakenly entering nonsensical inputs (like `"--type"` as a variable
+/// name), but defending against untrusted users is out-of-scope. Use a sandbox.
 impl Gdb {
     /// Spawn a gdb process to communicate with.
     ///
@@ -377,17 +387,13 @@ impl Gdb {
     ///
     /// If you need to see the output, use
     /// [`Self::execute_raw_console_for_output`].
-    ///
-    /// # Panics
-    /// - `msg` contains a double quote character `"`
-    ///     (I'm not sure if it's possible to escape this)
     pub async fn raw_console_cmd(&self, msg: impl Into<String>) -> Result<raw::Response, Error> {
         let msg = msg.into();
         assert!(
             !msg.contains('"'),
             "Cannot execute raw console command containing double quote character"
         );
-        let msg = format!(r#"-interpreter-exec console "{}""#, msg);
+        let msg = format!(r#"-interpreter-exec console "{}""#, escape_arg(msg));
 
         self.raw_cmd(msg).await
     }
@@ -400,20 +406,13 @@ impl Gdb {
     /// from communicating with to GDB until the lines are received or you timeout.
     ///
     /// # Panics
-    /// - `msg` contains a double quote character `"`
-    ///     (I'm not sure if it's possible to escape this)
     /// - `capture_lines` is zero
     pub async fn raw_console_cmd_for_output(
         &self,
-        msg: impl Into<String>,
+        msg: impl AsRef<str>,
         capture_lines: usize,
     ) -> Result<(raw::Response, Vec<String>), Error> {
-        let msg = msg.into();
-        assert!(
-            !msg.contains('"'),
-            "Cannot execute raw console command containing double quote character"
-        );
-        let msg = format!(r#"-interpreter-exec console "{}""#, msg);
+        let msg = format!(r#"-interpreter-exec console "{}""#, escape_arg(msg));
         let capture_lines = NonZeroUsize::new(capture_lines).expect("capture_lines nonzero");
 
         // Ensure no output is going to come for earlier commands
@@ -473,6 +472,24 @@ impl fmt::Debug for Gdb {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Gdb").finish() // TODO: Use finish_non_exhaustive
     }
+}
+
+/// Warning: This is on a best-effort basis, based on what someone on the gdb
+/// irc thought made sense.
+fn escape_arg(arg: impl AsRef<str>) -> String {
+    let arg = arg.as_ref();
+    let mut out = String::with_capacity(arg.len() + 2);
+    out.push('"');
+    for c in arg.chars() {
+        if c == '"' {
+            out.push('\\');
+            out.push('"');
+        } else {
+            out.push(c);
+        }
+    }
+    out.push('"');
+    out
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
