@@ -145,7 +145,7 @@ async fn mainloop(mut cmd: process::Child, mut rx: mpsc::UnboundedReceiver<Msg>)
 
                     Msg::NextStatus { current: current_belief, out } => {
                         if current_belief != status {
-                            warn!(
+                            debug!(
                                 ?current_belief,
                                 actual = ?status,
                                 "Caller's believed current status incorrect, sending them the current status"
