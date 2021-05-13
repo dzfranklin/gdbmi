@@ -702,6 +702,8 @@ mod tests {
         subject.await_stopped(None).await?;
         subject.exec_finish().await?;
         subject.await_stopped(None).await?;
+        subject.exec_finish_reverse().await?;
+        subject.await_stopped(None).await?;
         Ok(())
     }
 
@@ -741,7 +743,7 @@ mod tests {
     #[cfg(feature = "test_rr")]
     #[tokio::test]
     async fn test_rr_builders() -> Result {
-        let trace = record_hello_world();
+        let trace = test_common::record_hello_world();
         let timeout = Duration::from_secs(0);
 
         GdbBuilder::rr(&trace).spawn()?;
