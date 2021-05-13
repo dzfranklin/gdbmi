@@ -1,10 +1,10 @@
-use std::{collections::HashMap, num::NonZeroUsize};
+use std::{collections::HashMap, io, num::NonZeroUsize};
 
 use crate::{
     parser::{self, parse_message},
-    raw::{GeneralMessage, Response},
+    raw::{self, GeneralMessage, Response},
     status::Status,
-    Error, Token,
+    Token,
 };
 
 use tokio::{
@@ -14,30 +14,34 @@ use tokio::{
 };
 use tracing::{debug, error, info, warn};
 
+type MsgOut = mpsc::Sender<Result<Response, crate::Error>>;
+type StatusOut = mpsc::Sender<Status>;
+type StatusAwaiterPred = Box<dyn Fn(&Status) -> bool + Send + Sync>;
+
 #[derive(derivative::Derivative)]
 #[derivative(Debug)]
 pub(super) enum Msg {
     Cmd {
         token: Token,
         msg: String,
-        out: mpsc::Sender<Result<Response, Error>>,
+        out: MsgOut,
     },
     ConsoleCmd {
         token: Token,
         msg: String,
-        out: mpsc::Sender<Result<(Response, Vec<String>), Error>>,
+        out: mpsc::Sender<Result<(Response, Vec<String>), crate::Error>>,
         capture_lines: NonZeroUsize,
     },
     PopGeneral(mpsc::Sender<Vec<GeneralMessage>>),
     Status(mpsc::Sender<Status>),
     NextStatus {
         current: Status,
-        out: mpsc::Sender<Status>,
+        out: StatusOut,
     },
     AwaitStatus {
         #[derivative(Debug = "ignore")]
-        pred: Box<dyn Fn(&Status) -> bool + Send + Sync>,
-        out: mpsc::Sender<Status>,
+        pred: StatusAwaiterPred,
+        out: StatusOut,
     },
 }
 
@@ -47,268 +51,386 @@ pub(super) fn spawn(cmd: process::Child) -> mpsc::UnboundedSender<Msg> {
     tx
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 struct PendingConsole {
     token: Token,
     response: Option<Response>,
     lines: Vec<String>,
     target: NonZeroUsize,
-    out: mpsc::Sender<Result<(Response, Vec<String>), Error>>,
+    out: mpsc::Sender<Result<(Response, Vec<String>), crate::Error>>,
+}
+
+#[derive(derivative::Derivative)]
+#[derivative(Debug)]
+struct State {
+    stdin: process::ChildStdin,
+    stdout: BufReader<process::ChildStdout>,
+    stderr: BufReader<process::ChildStderr>,
+    stdout_buf: String,
+    stderr_buf: String,
+    status: Status,
+    #[derivative(Debug = "ignore")]
+    notify_next_status: Vec<StatusOut>,
+    #[derivative(Debug = "ignore")]
+    status_awaiters: Vec<(StatusAwaiterPred, StatusOut)>,
+    pending: HashMap<Token, MsgOut>,
+    pending_general: Vec<GeneralMessage>,
+    pending_console: Option<PendingConsole>,
 }
 
 async fn mainloop(mut cmd: process::Child, mut rx: mpsc::UnboundedReceiver<Msg>) {
-    let mut stdin = cmd
+    let stdin = cmd
         .stdin
         .take()
         .expect("Stdin not captured. See docs of Gdb::new");
-    let mut stdout = BufReader::new(
+    let stdout = BufReader::new(
         cmd.stdout
             .take()
             .expect("Stdout not captured. See docs of Gdb::new"),
     );
-    let mut stderr = BufReader::new(
+    let stderr = BufReader::new(
         cmd.stderr
             .take()
             .expect("Stderr not captured. See docs of Gdb::new"),
     );
 
-    let mut stdout_buf = String::new();
-    let mut stderr_buf = String::new();
-
-    let mut status = Status::Unstarted;
-    let mut notify_next_status = Vec::new();
-    let mut status_awaiters = Vec::new();
-    let mut pending = HashMap::new();
-    let mut pending_general = Vec::new();
-    let mut pending_console: Option<PendingConsole> = None;
+    let mut state = State {
+        stdin,
+        stdout,
+        stderr,
+        stdout_buf: String::new(),
+        stderr_buf: String::new(),
+        status: Status::Unstarted,
+        notify_next_status: Vec::new(),
+        status_awaiters: Vec::new(),
+        pending: HashMap::new(),
+        pending_general: Vec::new(),
+        pending_console: None,
+    };
 
     loop {
         select! {
-            msg = rx.recv(), if &pending_console.is_none() => {
-                // Don't pull any new command while we're waiting for console output
-
-                let msg = if let Some(msg) = msg {
-                    msg
-                } else {
-                    info!("Exiting mainloop as request_rx closed");
-                    break;
-                };
-
-                match msg {
-                    Msg::Cmd { token, msg, out } => {
-                        let mut input = token.serialize();
-                        input.push_str(&msg);
-                        input.push('\n');
-
-                        info!("Sending to gdb {}", input);
-                        if let Err(err) = stdin.write_all(&input.as_bytes()).await {
-                            error!("Failed to write, stopping: {}", err);
-                            break;
-                        }
-
-                        pending.insert(token, out);
-                    }
-
-                    Msg::ConsoleCmd {token, msg, out, capture_lines } => {
-                        pending_console = Some(PendingConsole {
-                            token,
-                            response: None,
-                            lines: Vec::with_capacity(capture_lines.get()),
-                            target: capture_lines,
-                            out,
-                        });
-
-                        let mut input = token.serialize();
-                        input.push_str(&msg);
-                        input.push('\n');
-
-                        debug!("Sending {}", input);
-                        if let Err(err) = stdin.write_all(&input.as_bytes()).await {
-                            error!("Failed to write, stopping: {}", err);
-                            break;
-                        }
-                    }
-
-                    Msg::PopGeneral(out) => {
-                        if let Err(err) = out.send(pending_general.clone()).await {
-                            error!("Failed to send general messages to out chan: {}", err);
-                        }
-
-                        pending_general.clear();
-                    }
-
-                    Msg::Status(out) => {
-                        if let Err(err) = out.send(status.clone()).await {
-                            error!("Failed to send status to out chan: {}", err);
-                        }
-                    }
-
-                    Msg::NextStatus { current: current_belief, out } => {
-                        if current_belief != status {
-                            debug!(
-                                ?current_belief,
-                                actual = ?status,
-                                "Caller's believed current status incorrect, sending them the current status"
-                            );
-                            if let Err(err) = out.send(status.clone()).await {
-                                error!("Failed to send status to out chan: {}", err);
-                            }
-                        } else {
-                            notify_next_status.push(out);
-                        }
-                    }
-
-                    Msg::AwaitStatus { pred, out } => {
-                        status_awaiters.push((pred, out));
+            // Don't pull any new command while we're waiting for console output
+            msg = rx.recv(), if &state.pending_console.is_none() => {
+                if let Err(err) = process_msg(msg, &mut state).await {
+                    if log_and_check_fatal(&state, err) {
+                        break
                     }
                 }
             }
 
-            result = stdout.read_line(&mut stdout_buf) => {
-                if let Err(err) = result {
-                    error!("Failed to read, stopping: {}", err);
-                    break;
-                }
-
-                let line = &stdout_buf[..stdout_buf.len() - 1]; // strip the newline
-                debug!("Got stdout: {}", line);
-                let response = match parse_message(&line) {
-                    Ok(response) => {
-                        response
-                    },
-                    Err(err) => {
-                        error!("Failed to parse response, stopping: {}", err);
-                        break;
-                    }
-                };
-                stdout_buf.clear();
-
-                match response {
-                    parser::Message::Response(response) => {
-                        let token = if let Some(token) = response.token() {
-                            token
-                        } else {
-                            match response {
-                                parser::Response::Notify { message, payload, .. } => {
-                                    if let Some(new_status) = Status::from_notification(&message, payload) {
-                                        status = new_status;
-
-                                        info!("New status {:?}", status);
-
-                                        debug!("Notifying {} watchers of status", notify_next_status.len());
-                                        for out in notify_next_status.drain(..) {
-                                            if let Err(err) = out.send(status.clone()).await {
-                                                error!("Failed to notify next status to out chan: {}", err);
-                                            }
-                                        }
-
-                                        let mut to_remove = Vec::new();
-                                        for (idx, (pred, out)) in status_awaiters.iter().enumerate() {
-                                            if pred(&status) {
-                                                if let Err(err) = out.send(status.clone()).await {
-                                                    error!("Failed to notify awaited status to out chan: {}", err);
-                                                }
-                                                to_remove.push(idx);
-                                            }
-                                        }
-                                        debug!("{} status awaiters were awaiting this status, {} remain", to_remove.len(), status_awaiters.len() - to_remove.len());
-                                        for idx in to_remove {
-                                            let _ = status_awaiters.remove(idx);
-                                        }
-                                    }
-                                }
-                                result @ parser::Response::Result { .. } => {
-                                    warn!("Ignoring result without token: {:?}", result);
-                                }
-                            }
-                            continue;
-                        };
-
-                        if let Some(pending_token) = pending_console.as_ref().map(|p| p.token) {
-                            if token == pending_token {
-                                match Response::from_parsed(response) {
-                                    Ok(response) => {
-                                        let mut pending = pending_console.as_mut().unwrap();
-                                        pending.response = Some(response);
-
-                                        if pending.lines.len() != pending.target.get() {
-                                            continue;
-                                        }
-
-                                        if let Err(err) = pending.out.send(Ok((pending.response.clone().unwrap(), pending.lines.clone()))).await {
-                                            error!("Failed to send to pending console out: {}", err);
-                                        }
-                                        pending_console = None;
-                                    }
-                                    Err(err) => {
-                                        if let Err(err) = pending_console.as_ref().unwrap().out.send(Err(err)).await {
-                                            error!("Failed to error to pending console out: {}", err);
-                                        }
-                                    }
-                                }
-                                continue;
-                            }
-                        }
-
-                        let out = if let Some(out) = pending.remove(&token) {
-                            out
-                        } else {
-                            warn!("Did not expect token {:?}. Ignoring response: {:?}", token, response);
-                            continue;
-                        };
-
-                        let response = Response::from_parsed(response);
-                        info!("Sending response: {:?}", response);
-                        if let Err(err) = out.send(response).await {
-                            error!("Failed to send response to out chan: {}", err);
-                        }
-                    }
-                    parser::Message::General(general) => {
-                        if let Some(pending) = pending_console.as_mut() {
-                            if let GeneralMessage::Console(line) = general {
-                                debug!(?pending, "Received console line for command: {}", line);
-
-                                if pending.lines.len() < pending.target.get() {
-                                    pending.lines.push(line);
-                                }
-
-                                if pending.lines.len() != pending.target.get() || pending.response.is_none() {
-                                    continue;
-                                }
-
-                                if let Err(err) = pending.out.send(Ok((pending.response.clone().unwrap(), pending.lines.clone()))).await {
-                                    error!("Failed to send to pending console out: {}", err);
-                                }
-                                pending_console = None;
-
-                                continue;
-                            }
-                        }
-
-                        if general == GeneralMessage::Done {
-                            // Suppress these, as they come after every command
-                            debug!("Ignoring done");
-                            continue;
-                        }
-
-                        info!("Got general message: {:?}", general);
-                        pending_general.push(general);
+            result = state.stdout.read_line(&mut state.stdout_buf) => {
+                if let Err(err) = process_stdout(result, &mut state).await {
+                    if log_and_check_fatal(&state, err) {
+                        break
                     }
                 }
             }
 
-            result = stderr.read_line(&mut stderr_buf) => {
-                if let Err(err) = result {
-                    error!("Failed to read, stopping: {}", err);
-                    break;
+            result = state.stderr.read_line(&mut state.stderr_buf) => {
+                if let Err(err) = process_stderr(result, &mut state).await {
+                    if log_and_check_fatal(&state, err) {
+                        break
+                    }
                 }
-
-                let line = &stderr_buf[..stderr_buf.len() - 1]; // strip the newline
-                debug!("Got stderr: {}", line);
-                let message = GeneralMessage::InferiorStderr(line.into());
-                pending_general.push(message);
-                stderr_buf.clear();
             }
         }
     }
+}
+
+fn log_and_check_fatal(state: &State, error: Error) -> bool {
+    debug!(?state, "State after error");
+    match error {
+        Error::Transient(err) => {
+            error!("Transient error in worker: {}", err);
+            false
+        }
+        Error::Fatal(err) => {
+            error!("Fatal error in worker: {}", err);
+            true
+        }
+    }
+}
+
+#[derive(Debug, thiserror::Error, displaydoc::Display)]
+enum Error {
+    /// Fatal error in worker
+    Fatal(#[from] FatalError),
+    /// Transient error in worker
+    Transient(#[from] TransientError),
+}
+
+#[derive(Debug, thiserror::Error, displaydoc::Display)]
+enum FatalError {
+    /// Failed to write to stdin
+    Stdin(#[source] io::Error),
+    /// Request channel closed
+    RequestChanClosed,
+    /// Failed to read stdout
+    Stdout(#[source] io::Error),
+    /// Failed to send to out chan
+    Send,
+    /// Failed to parse response
+    Parse(#[from] parser::Error),
+    /// Failed to read stderr
+    Stderr(#[source] io::Error),
+}
+
+#[derive(Debug, thiserror::Error, displaydoc::Display)]
+enum TransientError {
+    /// Failed to send to out chan
+    Send,
+    /// Failed to parse response
+    Parse(#[from] parser::Error),
+}
+
+impl<T> From<mpsc::error::SendError<T>> for FatalError {
+    fn from(_: mpsc::error::SendError<T>) -> Self {
+        Self::Send
+    }
+}
+
+async fn process_msg(msg: Option<Msg>, state: &mut State) -> Result<(), Error> {
+    let msg = msg.ok_or(FatalError::RequestChanClosed)?;
+
+    match msg {
+        Msg::Cmd { token, msg, out } => {
+            write_stdin(&mut state.stdin, token, &msg).await?;
+            state.pending.insert(token, out);
+        }
+
+        Msg::ConsoleCmd {
+            token,
+            msg,
+            out,
+            capture_lines,
+        } => {
+            state.pending_console = Some(PendingConsole {
+                token,
+                response: None,
+                lines: Vec::with_capacity(capture_lines.get()),
+                target: capture_lines,
+                out,
+            });
+            write_stdin(&mut state.stdin, token, &msg).await?;
+        }
+
+        Msg::PopGeneral(out) => {
+            send(&out, state.pending_general.clone()).await?;
+            state.pending_general.clear();
+        }
+
+        Msg::Status(out) => {
+            send(&out, state.status.clone()).await?;
+        }
+
+        Msg::NextStatus {
+            current: current_belief,
+            out,
+        } => {
+            if current_belief == state.status {
+                state.notify_next_status.push(out);
+            } else {
+                debug!(?current_belief, actual = ?state.status, "Caller's current_belief incorrect, sending current status");
+                send(&out, state.status.clone()).await?;
+            }
+        }
+
+        Msg::AwaitStatus { pred, out } => {
+            state.status_awaiters.push((pred, out));
+        }
+    }
+
+    Ok(())
+}
+
+async fn write_stdin(
+    stdin: &mut process::ChildStdin,
+    token: Token,
+    msg: &str,
+) -> Result<(), FatalError> {
+    let mut input = token.serialize();
+    input.push_str(&msg);
+    input.push('\n');
+
+    info!("Sending to gdb {}", input);
+    stdin
+        .write_all(&input.as_bytes())
+        .await
+        .map_err(FatalError::Stdin)?;
+
+    Ok(())
+}
+
+async fn process_stdout(result: io::Result<usize>, state: &mut State) -> Result<(), Error> {
+    result.map_err(FatalError::Stdout)?;
+
+    let line = &state.stdout_buf[..state.stdout_buf.len() - 1]; // strip the newline
+    debug!("Got stdout: {}", line);
+    let response = parse_message(&line).map_err(TransientError::from)?;
+    state.stdout_buf.clear();
+
+    match response {
+        parser::Message::Response(response) => process_parsed_response(state, response).await?,
+        parser::Message::General(general) => process_parsed_general(state, general).await?,
+    }
+    Ok(())
+}
+
+async fn process_parsed_response(
+    state: &mut State,
+    response: parser::Response,
+) -> Result<(), Error> {
+    let token = if let Some(token) = response.token() {
+        token
+    } else {
+        match response {
+            parser::Response::Notify {
+                message, payload, ..
+            } => {
+                process_response_notify(state, message, payload).await?;
+            }
+            result @ parser::Response::Result { .. } => {
+                warn!("Ignoring result without token: {:?}", result);
+            }
+        }
+        return Ok(());
+    };
+
+    if let Some(pending_token) = state.pending_console.as_ref().map(|p| p.token) {
+        if token == pending_token {
+            match Response::from_parsed(response) {
+                Ok(response) => {
+                    let mut pending = state.pending_console.as_mut().unwrap();
+                    pending.response = Some(response);
+
+                    if pending.lines.len() != pending.target.get() {
+                        return Ok(());
+                    }
+
+                    send(
+                        &pending.out,
+                        Ok((pending.response.clone().unwrap(), pending.lines.clone())),
+                    )
+                    .await?;
+
+                    state.pending_console = None;
+                }
+                Err(err) => {
+                    send(&state.pending_console.as_ref().unwrap().out, Err(err)).await?;
+                }
+            }
+            return Ok(());
+        }
+    }
+
+    let out = if let Some(out) = state.pending.remove(&token) {
+        out
+    } else {
+        warn!(
+            "Got unexpected token {:?}, so ignoring: {:?}",
+            token, response
+        );
+        return Ok(());
+    };
+
+    let response = Response::from_parsed(response);
+    info!("Sending response: {:?}", response);
+    send(&out, response).await?;
+
+    Ok(())
+}
+
+async fn process_response_notify(
+    state: &mut State,
+    message: String,
+    payload: raw::Dict,
+) -> Result<(), Error> {
+    if let Some(new_status) = Status::from_notification(&message, payload) {
+        state.status = new_status;
+
+        info!("New status {:?}", state.status);
+
+        let to_notify = &mut state.notify_next_status;
+        debug!("Notifying {} watchers of status", to_notify.len());
+        for out in to_notify.drain(..) {
+            send(&out, state.status.clone()).await?;
+        }
+
+        let mut to_remove = Vec::new();
+        for (idx, (pred, out)) in state.status_awaiters.iter().enumerate() {
+            if pred(&state.status) {
+                send(out, state.status.clone()).await?;
+                to_remove.push(idx);
+            }
+        }
+        debug!(
+            "{} were awaiting this status, {} remain",
+            to_remove.len(),
+            state.status_awaiters.len() - to_remove.len()
+        );
+        for idx in to_remove {
+            drop(state.status_awaiters.remove(idx));
+        }
+    }
+
+    Ok(())
+}
+
+async fn process_parsed_general(
+    state: &mut State,
+    general: raw::GeneralMessage,
+) -> Result<(), Error> {
+    if let Some(pending) = state.pending_console.as_mut() {
+        if let GeneralMessage::Console(line) = general {
+            debug!(?pending, "Received console line for command: {}", line);
+
+            if pending.lines.len() < pending.target.get() {
+                pending.lines.push(line);
+            }
+
+            if pending.lines.len() != pending.target.get() || pending.response.is_none() {
+                return Ok(());
+            }
+
+            send(
+                &pending.out,
+                Ok((pending.response.clone().unwrap(), pending.lines.clone())),
+            )
+            .await?;
+
+            state.pending_console = None;
+
+            return Ok(());
+        }
+    }
+
+    if general == GeneralMessage::Done {
+        // Suppress these, as they come after every command
+        debug!("Ignoring done");
+        return Ok(());
+    }
+
+    info!("Got general message: {:?}", general);
+    state.pending_general.push(general);
+
+    Ok(())
+}
+
+async fn process_stderr(result: io::Result<usize>, state: &mut State) -> Result<(), Error> {
+    result.map_err(FatalError::Stderr)?;
+
+    let line = &state.stderr_buf[..state.stderr_buf.len() - 1]; // strip the newline
+    debug!("Got stderr: {}", line);
+    let message = GeneralMessage::InferiorStderr(line.into());
+    state.pending_general.push(message);
+    state.stderr_buf.clear();
+
+    Ok(())
+}
+
+async fn send<T>(chan: &mpsc::Sender<T>, val: T) -> Result<(), Error> {
+    chan.send(val)
+        .await
+        .map_err(|_| Error::Transient(TransientError::Send))
 }
