@@ -231,8 +231,15 @@ pub struct Gdb {
     timeout: Duration,
 }
 
-/// Some methods take an option timeout. If you provide `None` the default
+/// Some methods take an optional timeout. If you provide `None` the default
 /// timeout will be used.
+///
+/// If the command you want isn't supported yet, you can send raw GDB/MI
+/// messages with [`Self::raw_cmd`] and use the apis in [`raw`] to work with the
+/// response. If a GDB/MI command doesn't exist for what
+/// you're trying to do yet, you can send normal GDB commands with
+/// [`Self::raw_console_cmd`]. If you can, please open an issue with what wasn't
+/// supported so I can improve gdbmi.
 ///
 /// ## Warning
 ///
@@ -556,7 +563,7 @@ impl Gdb {
         Self::worker_receive(out_rx, self.timeout).await?
     }
 
-    /// Execute a console command for a given number of lines of console output.
+    /// Execute a console command.
     ///
     /// Console commands are the commands you enter in a normal GDB session,
     /// in contrast to the GDB/MI commands designed for programmatic use.
@@ -573,6 +580,8 @@ impl Gdb {
         self.raw_cmd(msg).await
     }
 
+    /// Execute a console command for a given number of lines of console output.
+    ///
     /// Prefer [`Self::raw_console_cmd`] if possible.
     ///
     /// Avoid capturing more lines than you need to. Because console output
@@ -651,8 +660,6 @@ impl Gdb {
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// # });
     /// ```
-    ///
-    /// See [`Self::spawn`] for an explanation of `timeout`.
     #[must_use]
     pub fn new(cmd: process::Child, timeout: Duration) -> Self {
         let worker = worker::spawn(cmd);
