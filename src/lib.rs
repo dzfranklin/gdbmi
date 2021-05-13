@@ -79,8 +79,8 @@ pub struct TimeoutError;
 #[derive(Debug, Clone, thiserror::Error, displaydoc::Display, Eq, PartialEq)]
 /// Received error from gdb. Code: {code:?}, msg: {msg:?}
 pub struct GdbError {
-    code: Option<String>,
-    msg: Option<String>,
+    pub code: Option<String>,
+    pub msg: Option<String>,
 }
 
 #[derive(Debug, Clone, thiserror::Error, Eq, PartialEq)]
