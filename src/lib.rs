@@ -334,6 +334,20 @@ impl Gdb {
             .expect_msg_is("running")
     }
 
+    pub async fn exec_step(&self) -> Result<(), Error> {
+        self.raw_cmd("-exec-step")
+            .await?
+            .expect_result()?
+            .expect_msg_is("running")
+    }
+
+    pub async fn exec_step_reverse(&self) -> Result<(), Error> {
+        self.raw_cmd("-exec-step --reverse")
+            .await?
+            .expect_result()?
+            .expect_msg_is("running")
+    }
+
     pub async fn break_insert(&self, at: LineSpec) -> Result<Breakpoint, Error> {
         let raw = self
             .raw_cmd(format!("-break-insert {}", at.serialize()))
@@ -706,6 +720,52 @@ mod tests {
         subject.await_stopped(None).await?;
         subject.exec_finish().await?;
         subject.await_stopped(None).await?;
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_exec_step() -> Result {
+        let subject = fixture()?;
+        subject
+            .break_insert(LineSpec::function("hello_world::main"))
+            .await?;
+        subject.exec_run().await?;
+        subject.await_stopped(None).await?;
+        subject.exec_step().await?;
+        subject.await_stopped(None).await?;
+        Ok(())
+    }
+
+    #[cfg(feature = "test_rr")]
+    #[tokio::test]
+    async fn test_exec_step_reverse() -> Result {
+        let subject = rr_fixture()?;
+        subject
+            .break_insert(LineSpec::function("hello_world::main"))
+            .await?;
+        subject.exec_run().await?;
+        subject.exec_continue().await?;
+        subject.await_stopped(None).await?;
+        subject.exec_step().await?;
+        subject.await_stopped(None).await?;
+        subject.exec_step_reverse().await?;
+        subject.await_stopped(None).await?;
+        Ok(())
+    }
+
+    #[cfg(feature = "test_rr")]
+    #[tokio::test]
+    async fn test_exec_finish_reverse() -> Result {
+        let subject = rr_fixture()?;
+        subject
+            .break_insert(LineSpec::function("hello_world::HelloMsg::say"))
+            .await?;
+        subject.exec_run().await?;
+        subject.exec_continue().await?;
+        subject.await_stopped(None).await?;
+        subject.exec_finish().await?;
+        subject.await_stopped(None).await?;
+        subject.exec_step_reverse().await?;
         subject.exec_finish_reverse().await?;
         subject.await_stopped(None).await?;
         Ok(())
