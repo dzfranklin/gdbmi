@@ -237,7 +237,12 @@ async fn process_msg(msg: Option<Msg>, state: &mut State) -> Result<(), Error> {
         }
 
         Msg::AwaitStatus { pred, out } => {
-            state.status_awaiters.push((pred, out));
+            if pred(&state.status) {
+                debug!("Current status satisfies await request");
+                send(&out, state.status.clone()).await?;
+            } else {
+                state.status_awaiters.push((pred, out));
+            }
         }
     }
 
