@@ -8,4 +8,4 @@ Interact with a GDB session through the GDB machine interface
 The parser is ported from pygdbmi, written by Chad Smith, which
 [is also MIT licensed][pygdbmi-license].
  
- [pygdbmi-license](https://github.com/cs01/pygdbmi/blob/master/LICENSE)
+[pygdbmi-license]: https://github.com/cs01/pygdbmi/blob/master/LICENSE
