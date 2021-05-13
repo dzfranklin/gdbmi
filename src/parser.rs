@@ -45,8 +45,7 @@ pub(crate) enum Response {
 impl Response {
     pub(crate) fn token(&self) -> Option<Token> {
         match self {
-            Self::Notify { token, .. } => *token,
-            Self::Result { token, .. } => *token,
+            Self::Notify { token, .. } | Self::Result { token, .. } => *token,
         }
     }
 }
@@ -65,7 +64,7 @@ impl From<Response> for Message {
 
 /// Parse the output of gdbmi
 ///
-/// See https://sourceware.org/gdb/onlinedocs/gdb/GDB_002fMI-Stream-Records.html#GDB_002fMI-Stream-Records
+/// See <https://sourceware.org/gdb/onlinedocs/gdb/GDB_002fMI-Stream-Records.html#GDB_002fMI-Stream-Records>
 /// for details on types of gdb mi output.
 pub(crate) fn parse_message(i: &str) -> Result<Message> {
     assert!(!i.contains('\n'));
@@ -186,7 +185,7 @@ fn get_result_msg_and_payload(
 
 /// Parse dictionary, with optional starting character '{'
 /// return (tuple):
-///     Number of characters parsed from to_parse
+///     Number of characters parsed from `to_parse`
 ///     Parsed dictionary
 fn parse_dict(stream: &mut StringStream) -> Result<Dict> {
     let mut obj: HashMap<String, Value> = HashMap::new();
@@ -222,12 +221,12 @@ fn parse_dict(stream: &mut StringStream) -> Result<Dict> {
         }
 
         let mut lookahead_for_garbage = true;
-        let mut c = stream.read(1).as_bytes();
+        let mut next_c = stream.read(1).as_bytes();
         while lookahead_for_garbage {
-            if c.is_empty() || c[0] == DICT_END || c[0] == VALUE_SEP {
+            if next_c.is_empty() || next_c[0] == DICT_END || next_c[0] == VALUE_SEP {
                 lookahead_for_garbage = false;
             } else {
-                c = stream.read(1).as_bytes();
+                next_c = stream.read(1).as_bytes();
             }
         }
         stream.seek_back(1);
@@ -351,7 +350,7 @@ mod tests {
     fn test_parse_basic_with_token() -> Result {
         assert_eq!(
             Message::from(Response::Result {
-                token: Some(Token(544760273)),
+                token: Some(Token(544_760_273)),
                 message: "done".into(),
                 payload: None
             }),

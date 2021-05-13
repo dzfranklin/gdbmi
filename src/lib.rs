@@ -3,7 +3,8 @@
 //! The main entrypoints are [`Gdb`] and [`GdbBuilder`].
 //!
 //! This crate requires a tokio runtime.
-#![warn(clippy::all, clippy::cargo)]
+#![warn(clippy::all, clippy::pedantic, clippy::cargo)]
+#![allow(clippy::missing_errors_doc)]
 use std::{
     borrow::Cow, collections::HashMap, fmt, num::NonZeroUsize, process::Stdio, time::Duration,
 };
@@ -188,29 +189,32 @@ impl GdbBuilder {
     pub fn spawn(&self) -> io::Result<Gdb> {
         info!("Spawning {:?}", self);
 
-        let mut cmd = if let Some(tt) = self.time_travel {
-            let program = match tt {
-                BuilderTimeTravel::Rr => "rr",
-                BuilderTimeTravel::Rd => "rd",
-            };
-            let mut cmd = process::Command::new(program);
-            cmd.arg("replay");
-            if self.is_rust {
-                cmd.args(&["-d", "rust-gdb"]);
-            }
-            cmd.arg("--mark-stdio");
-            cmd.arg(self.target.as_str());
-            cmd.args(&["--", "--interpreter=mi3", "--quiet"]);
-            cmd
-        } else {
-            let mut cmd = if self.is_rust {
-                process::Command::new("rust-gdb")
-            } else {
-                process::Command::new("gdb")
-            };
-            cmd.args(&["--interpreter=mi3", "--quiet", self.target.as_str()]);
-            cmd
-        };
+        let mut cmd = self.time_travel.map_or_else(
+            || {
+                let mut cmd = if self.is_rust {
+                    process::Command::new("rust-gdb")
+                } else {
+                    process::Command::new("gdb")
+                };
+                cmd.args(&["--interpreter=mi3", "--quiet", self.target.as_str()]);
+                cmd
+            },
+            |tt| {
+                let program = match tt {
+                    BuilderTimeTravel::Rr => "rr",
+                    BuilderTimeTravel::Rd => "rd",
+                };
+                let mut cmd = process::Command::new(program);
+                cmd.arg("replay");
+                if self.is_rust {
+                    cmd.args(&["-d", "rust-gdb"]);
+                }
+                cmd.arg("--mark-stdio");
+                cmd.arg(self.target.as_str());
+                cmd.args(&["--", "--interpreter=mi3", "--quiet"]);
+                cmd
+            },
+        );
 
         let cmd = cmd
             .stdin(Stdio::piped())
@@ -649,6 +653,7 @@ impl Gdb {
     /// ```
     ///
     /// See [`Self::spawn`] for an explanation of `timeout`.
+    #[must_use]
     pub fn new(cmd: process::Child, timeout: Duration) -> Self {
         let worker = worker::spawn(cmd);
         Self { worker, timeout }
@@ -706,7 +711,7 @@ impl Token {
         Self(rand::thread_rng().gen())
     }
 
-    pub(crate) fn serialize(&self) -> String {
+    pub(crate) fn serialize(self) -> String {
         format!("{}", self.0)
     }
 }

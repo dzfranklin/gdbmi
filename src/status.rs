@@ -5,7 +5,7 @@ use crate::{address::Address, raw, Error};
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 /// Note: If the program stops because of a signal like SIGKILL you will get a
-/// Status::Stopped.
+/// [`Status::Stopped`].
 pub enum Status {
     Unstarted,
     Running,

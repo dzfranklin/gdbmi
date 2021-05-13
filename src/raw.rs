@@ -55,12 +55,11 @@ pub type List = Vec<Value>;
 
 impl Response {
     pub fn expect_result(self) -> Result<ResultResponse, Error> {
-        match self {
-            Self::Result(result) => Ok(result),
-            _ => {
-                error!("Expected Response to be Result, got: {:?}", self);
-                Err(Error::ExpectedResultResponse)
-            }
+        if let Self::Result(result) = self {
+            Ok(result)
+        } else {
+            error!("Expected Response to be Result, got: {:?}", self);
+            Err(Error::ExpectedResultResponse)
         }
     }
 
@@ -108,22 +107,24 @@ impl ResultResponse {
     }
 
     pub fn expect_msg_is(&self, msg: &str) -> Result<(), Error> {
-        if self.message != msg {
+        if self.message == msg {
+            Ok(())
+        } else {
             Err(Error::UnexpectedResponseMessage {
                 expected: msg.to_owned(),
-                actual: self.message.to_owned(),
+                actual: self.message.clone(),
             })
-        } else {
-            Ok(())
         }
     }
 }
 
 impl Dict {
+    #[must_use]
     pub fn new(map: HashMap<String, Value>) -> Self {
         Self(map)
     }
 
+    #[must_use]
     pub fn as_map(&self) -> &HashMap<String, Value> {
         &self.0
     }

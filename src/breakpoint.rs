@@ -31,6 +31,7 @@ impl LineSpec {
         }
     }
 
+    #[must_use]
     pub fn serialize(self) -> String {
         match self {
             Self::Line { file, num } => format!("{}:{}", file, num),
@@ -44,7 +45,7 @@ impl LineSpec {
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Breakpoint {
     pub number: u32,
-    pub addr: BreakpointAddr,
+    pub addr: Addr,
     pub file: Option<Utf8PathBuf>,
     pub line: Option<u32>,
     pub thread_groups: Vec<String>,
@@ -52,8 +53,8 @@ pub struct Breakpoint {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub enum BreakpointAddr {
-    Addr(u64),
+pub enum Addr {
+    Value(u64),
     Pending,
     Multiple,
     Unknown,
@@ -77,12 +78,12 @@ impl Breakpoint {
         let addr = if let Some(addr) = raw.as_map_mut().remove("addr") {
             let addr = addr.expect_string()?;
             match addr.as_str() {
-                "<PENDING>" => BreakpointAddr::Pending,
-                "<MULTIPLE>" => BreakpointAddr::Multiple,
-                addr => BreakpointAddr::Addr(raw::parse_hex(addr)?),
+                "<PENDING>" => Addr::Pending,
+                "<MULTIPLE>" => Addr::Multiple,
+                addr => Addr::Value(raw::parse_hex(addr)?),
             }
         } else {
-            BreakpointAddr::Unknown
+            Addr::Unknown
         };
 
         let thread_groups = raw
