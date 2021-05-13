@@ -150,7 +150,7 @@ impl Status {
             "exited-normally" => Ok(Self::Exited(ExitReason::Normal)),
             reason => {
                 error!("Unexpected stop reason: {}", reason);
-                return Err(Error::ExpectedDifferentPayload);
+                Err(Error::ExpectedDifferentPayload)
             }
         }
     }
