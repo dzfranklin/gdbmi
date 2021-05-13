@@ -6,7 +6,7 @@ edition = "2018"
 license = "MIT"
 description = "(WIP) Interact with a GDB session through the GDB machine interface"
 repository = "https://github.com/danielzfranklin/gdbmi"
-keywords = ["gdb", "gdbmi", "gdb/mi", "debugger", "debug", "debugging"]
+keywords = ["gdb", "gdbmi", "debugger", "debug", "debugging"]
 categories = ["development-tools"]
 
 [features]
