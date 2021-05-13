@@ -231,6 +231,22 @@ pub struct Gdb {
     timeout: Duration,
 }
 
+/// ```
+/// use gdbmi::{Gdb, breakpoint::LineSpec};
+///
+/// # tokio_test::block_on(async {
+/// let gdb = Gdb::spawn("samples/.out/hello_world")?;
+///
+/// gdb
+///     .break_insert(LineSpec::function("hello_world::HelloMsg::say"))
+///     .await?;
+/// gdb.exec_run().await?;
+/// gdb.await_stopped(None).await?;
+///
+/// let vars = gdb.stack_list_variables(false).await?;
+/// # Ok::<_, Box<dyn std::error::Error>>(())
+/// # });
+/// ```
 /// Some methods take an optional timeout. If you provide `None` the default
 /// timeout will be used.
 ///
