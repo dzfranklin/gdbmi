@@ -560,10 +560,6 @@ impl Gdb {
     /// [`Self::raw_console_cmd_for_output`].
     pub async fn raw_console_cmd(&self, msg: impl Into<String>) -> Result<raw::Response, Error> {
         let msg = msg.into();
-        assert!(
-            !msg.contains('"'),
-            "Cannot execute raw console command containing double quote character"
-        );
         let msg = format!("-interpreter-exec console {}", escape_arg(msg));
 
         self.raw_cmd(msg).await
