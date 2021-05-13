@@ -311,6 +311,22 @@ impl Gdb {
             .expect_msg_is("running")
     }
 
+    pub async fn exec_finish(&self) -> Result<(), Error> {
+        self.raw_cmd("-exec-finish")
+            .await?
+            .expect_result()?
+            .expect_msg_is("running")
+    }
+
+    /// Resume the reverse execution of the inferior program until the point
+    /// where current function was called.
+    pub async fn exec_finish_reverse(&self) -> Result<(), Error> {
+        self.raw_cmd("-exec-finish --reverse")
+            .await?
+            .expect_result()?
+            .expect_msg_is("running")
+    }
+
     pub async fn break_insert(&self, at: LineSpec) -> Result<Breakpoint, Error> {
         let raw = self
             .raw_cmd(format!("-break-insert {}", at.serialize()))
@@ -639,6 +655,19 @@ mod tests {
         init();
         let trace = crate::test_common::record_hello_world();
         Ok(GdbBuilder::rr(trace).spawn()?)
+    }
+
+    #[tokio::test]
+    async fn test_exec_finish() -> Result {
+        let subject = fixture()?;
+        subject
+            .break_insert(LineSpec::function("hello_world::HelloMsg::say"))
+            .await?;
+        subject.exec_run().await?;
+        subject.await_stopped(None).await?;
+        subject.exec_finish().await?;
+        subject.await_stopped(None).await?;
+        Ok(())
     }
 
     #[tokio::test]
