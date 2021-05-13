@@ -259,6 +259,11 @@ impl Gdb {
         &self,
         timeout: Option<Duration>,
     ) -> Result<status::Stopped, TimeoutError> {
+        if let Status::Stopped(status) = self.status().await? {
+            debug!("Already stopped");
+            return Ok(status);
+        }
+
         let status = self
             .await_status(|s| matches!(s, Status::Stopped(_)), timeout)
             .await?;
