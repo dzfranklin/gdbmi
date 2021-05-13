@@ -1,7 +1,7 @@
 use camino::Utf8PathBuf;
 use tracing::error;
 
-use crate::{raw, Error};
+use crate::{address::Address, raw, Error};
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 /// Note: If the program stops because of a signal like SIGKILL you will get a
@@ -16,7 +16,7 @@ pub enum Status {
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Stopped {
     pub reason: Option<StopReason>,
-    pub address: u64,
+    pub address: Address,
     pub function: Option<String>,
     pub file: Option<Utf8PathBuf>,
     pub line: Option<u32>,
@@ -161,7 +161,7 @@ impl Status {
     ) -> Result<Status, Error> {
         let mut frame = payload.remove_expect("frame")?.expect_dict()?;
 
-        let address = frame.remove_expect("addr")?.expect_hex()?;
+        let address = frame.remove_expect("addr")?.expect_address()?;
         let function = frame
             .remove("func")
             .map(raw::Value::expect_string)

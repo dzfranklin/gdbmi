@@ -14,6 +14,7 @@ use tokio::{io, process, sync::mpsc, time};
 use tracing::{debug, error, info};
 use variable::Variable;
 
+pub mod address;
 pub mod breakpoint;
 pub mod checkpoint;
 pub mod parser;

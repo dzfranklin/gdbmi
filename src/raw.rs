@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use camino::Utf8PathBuf;
 use tracing::{error, warn};
 
-use crate::{parser, Error, GdbError, ParseHexError};
+use crate::{address::Address, parser, Error, GdbError, ParseHexError};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Message {
@@ -217,6 +217,10 @@ impl Value {
 
     pub fn expect_hex(self) -> Result<u64, Error> {
         parse_hex(&self.expect_string()?)
+    }
+
+    pub fn expect_address(self) -> Result<Address, Error> {
+        self.expect_hex().map(Address)
     }
 }
 
