@@ -8,6 +8,7 @@ use std::{
 use breakpoint::{Breakpoint, LineSpec};
 use camino::Utf8PathBuf;
 use checkpoint::Checkpoint;
+use frame::Frame;
 use rand::Rng;
 use status::Status;
 use tokio::{io, process, sync::mpsc, time};
@@ -17,6 +18,7 @@ use variable::Variable;
 pub mod address;
 pub mod breakpoint;
 pub mod checkpoint;
+pub mod frame;
 pub mod parser;
 pub mod raw;
 pub mod status;
@@ -370,6 +372,20 @@ impl Gdb {
             .expect_msg_is("done")
     }
 
+    /// GDB allows Python-based frame filters to affect the output of the MI
+    /// commands relating to stack traces. As there is no way to implement this
+    /// in a fully backward-compatible way, a front end must request that this
+    /// functionality be enabled. Once enabled, this feature cannot be disabled.
+    ///
+    /// Note that if Python support has not been compiled into GDB, this command
+    /// will still succeed (and do nothing).
+    pub async fn enable_filter_frames(&self) -> Result<(), Error> {
+        self.raw_cmd("-enable-filter-frames")
+            .await?
+            .expect_result()?
+            .expect_msg_is("done")
+    }
+
     /// If `max` is provided, don't count beyond it.
     pub async fn stack_depth(&self, max: Option<u32>) -> Result<u32, Error> {
         let msg = if let Some(max) = max {
@@ -398,6 +414,17 @@ impl Gdb {
         };
         let payload = self.raw_cmd(msg).await?.expect_result()?.expect_payload()?;
         variable::from_stack_list(payload)
+    }
+
+    pub async fn stack_info_frame(&self) -> Result<Frame, Error> {
+        let raw = self
+            .raw_cmd("-stack-info-frame")
+            .await?
+            .expect_result()?
+            .expect_payload()?
+            .remove_expect("frame")?
+            .expect_dict()?;
+        Frame::from_dict(raw)
     }
 
     pub async fn symbol_info_functions(
@@ -659,6 +686,13 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_enable_filter_frames() -> Result {
+        let subject = fixture()?;
+        subject.enable_filter_frames().await?;
+        Ok(())
+    }
+
+    #[tokio::test]
     async fn test_exec_finish() -> Result {
         let subject = fixture()?;
         subject
@@ -737,6 +771,12 @@ mod tests {
         assert_eq!("self", vars[0].name);
         assert_eq!("*mut hello_world::HelloMsg", vars[0].var_type);
         assert!(vars[0].value.is_some());
+
+        let frame = subject.stack_info_frame().await?;
+        assert_eq!(0, frame.level);
+        assert_eq!("hello_world::HelloMsg::say", frame.function.unwrap());
+        assert!(frame.file.unwrap().ends_with("src/main.rs"));
+        assert_eq!(Some(11), frame.line);
 
         Ok(())
     }
