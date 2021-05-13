@@ -1,5 +1,8 @@
 # gdbmi
 
+[![Crates.io](https://img.shields.io/crates/v/gdbmi)](https://crates.io/crates/gdbmi)
+![MIT Licensed](https://img.shields.io/crates/l/gdbmi)
+
 Interact with a GDB session through the GDB machine interface
 
 All changes written by me are MIT licensed. The parser is ported from pygdbmi. Pygdbmi is licensed under the following terms:
