@@ -1,9 +1,13 @@
 [package]
 name = "gdbmi"
-version = "0.1.0"
+version = "0.0.1"
 authors = ["Daniel Franklin <daniel@danielzfranklin.org>"]
 edition = "2018"
 license = "MIT"
+description = "(WIP) Interact with a GDB session through the GDB machine interface"
+repository = "https://github.com/danielzfranklin/gdbmi"
+keywords = ["gdb", "gdbmi", "gdb/mi", "debugger", "debug", "debugging"]
+categories = ["development-tools"]
 
 [features]
 # Build tests that require rr

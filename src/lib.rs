@@ -1,6 +1,9 @@
-/// A client for GDB/MI, the GDB machine interface.
-///
-/// gdbmi requires a tokio runtime.
+//! A client for GDB/MI, the GDB machine interface.
+//!
+//! The main entrypoints are [`Gdb`] and [`GdbBuilder`].
+//!
+//! This crate requires a tokio runtime.
+#![warn(clippy::all, clippy::cargo)]
 use std::{
     borrow::Cow, collections::HashMap, fmt, num::NonZeroUsize, process::Stdio, time::Duration,
 };
@@ -111,6 +114,17 @@ enum BuilderTimeTravel {
 ///
 /// If you need even more control you can spawn the process yourself and pass it
 /// to [`Gdb::new`].
+///
+/// ```
+/// # use gdbmi::GdbBuilder;
+/// # tokio_test::block_on(async {
+/// let gdb = GdbBuilder::rr("my_trace_dir")
+///     .rust(false)
+///     .timeout(Duration::from_secs(10))
+///     .spawn()?;
+/// # Ok::<_, io::Error>()
+/// # });
+/// ```
 impl GdbBuilder {
     const DEFAULT_TIMEOUT: Duration = Duration::from_secs(5);
 
@@ -153,6 +167,11 @@ impl GdbBuilder {
         }
     }
 
+    /// The default timeout.
+    ///
+    /// Some methods accept an optional timeout, which will be used instead if
+    /// specified. The timeout is per request to gdb, not per method. Some
+    /// methods make multiple requests to gdb.
     pub fn timeout(&mut self, timeout: Duration) -> &mut Self {
         self.timeout = timeout;
         self
@@ -164,6 +183,7 @@ impl GdbBuilder {
         self
     }
 
+    /// Spawn the process you've specified.
     pub fn spawn(&self) -> io::Result<Gdb> {
         info!("Spawning {:?}", self);
 
@@ -209,7 +229,7 @@ pub struct Gdb {
 /// Some methods take an option timeout. If you provide `None` the default
 /// timeout will be used.
 ///
-/// # Warning:
+/// ## Warning
 ///
 /// **Never pass untrusted user input.**
 ///
@@ -218,16 +238,21 @@ pub struct Gdb {
 ///
 /// We do some escaping before passing inputs to GDB to try and protect against
 /// users mistakenly entering nonsensical inputs (like `"--type"` as a variable
-/// name), but defending against untrusted users is out-of-scope. Use a sandbox.
+/// name), but defending against untrusted users is out-of-scope. If you're
+/// exposing your app to untrusted users you probably want a sandbox.
 impl Gdb {
     /// Spawn a gdb process to debug `target`.
     ///
     /// By default we use `rust-gdb` to support pretty-printing rust symbols and
-    /// a timeout of five seconds. See [`GdbBuilder`] if you need greater control.
+    /// a timeout of five seconds.
+    ///
+    /// Use [`GdbBuilder`] if you need greater control over the configuration.
     pub fn spawn(target: impl Into<Utf8PathBuf>) -> io::Result<Self> {
         GdbBuilder::new(target).spawn()
     }
 
+    /// Get the current status
+    ///
     /// Note: The status is refreshed when gdb sends us notifications. Calling
     /// this function just fetches the cached status.
     pub async fn status(&self) -> Result<Status, TimeoutError> {
@@ -241,9 +266,6 @@ impl Gdb {
     /// To avoid missing a status change right before your request is processed,
     /// submit what you think the current status is. If you're wrong, you'll get
     /// back the current status instead of waiting for the next one.
-    ///
-    /// If you don't specify a timeout the default timeout for this instance
-    /// will be used.
     pub async fn next_status(
         &self,
         current: Status,
@@ -258,6 +280,7 @@ impl Gdb {
         Self::worker_receive(out_rx, timeout).await
     }
 
+    /// Wait until the status is [`Status::Stopped`] and then return the status.
     pub async fn await_stopped(
         &self,
         timeout: Option<Duration>,
@@ -276,6 +299,17 @@ impl Gdb {
         }
     }
 
+    /// Provide each status we get to a function you provide. When the function
+    /// returns true, return that status.
+    ///
+    /// ```
+    /// # tokio_test::block_on(async {
+    /// let timeout = Duration::from_secs(10);
+    /// let status = self
+    ///     .await_status(|s| s == Status::Running, timeout)
+    ///     .await?;
+    /// # });
+    /// ```
     pub async fn await_status<P>(
         &self,
         pred: P,
@@ -523,7 +557,7 @@ impl Gdb {
     /// supported by GDB/MI.
     ///
     /// If you need to see the output, use
-    /// [`Self::execute_raw_console_for_output`].
+    /// [`Self::raw_console_cmd_for_output`].
     pub async fn raw_console_cmd(&self, msg: impl Into<String>) -> Result<raw::Response, Error> {
         let msg = msg.into();
         assert!(
@@ -535,7 +569,7 @@ impl Gdb {
         self.raw_cmd(msg).await
     }
 
-    /// Prefer [`Self::execute_raw_console`] if possible.
+    /// Prefer [`Self::raw_console_cmd`] if possible.
     ///
     /// Avoid capturing more lines than you need to. Because console output
     /// can't be associated with a command we assume the next `capture_lines` of
