@@ -117,12 +117,13 @@ enum BuilderTimeTravel {
 ///
 /// ```
 /// # use gdbmi::GdbBuilder;
+/// # use std::time::Duration;
 /// # tokio_test::block_on(async {
 /// let gdb = GdbBuilder::rr("my_trace_dir")
 ///     .rust(false)
 ///     .timeout(Duration::from_secs(10))
 ///     .spawn()?;
-/// # Ok::<_, io::Error>()
+/// # Ok::<_, std::io::Error>(())
 /// # });
 /// ```
 impl GdbBuilder {
@@ -303,12 +304,15 @@ impl Gdb {
     /// returns true, return that status.
     ///
     /// ```
-    /// # tokio_test::block_on(async {
+    /// # use std::time::Duration;
+    /// # use gdbmi::status::Status;
+    /// # async fn _wrapper(gdb: &gdbmi::Gdb) -> eyre::Result<()> {
     /// let timeout = Duration::from_secs(10);
-    /// let status = self
-    ///     .await_status(|s| s == Status::Running, timeout)
+    /// let status = gdb
+    ///     .await_status(|s| s == &Status::Running, Some(timeout))
     ///     .await?;
-    /// # });
+    /// # Ok(())
+    /// # }
     /// ```
     pub async fn await_status<P>(
         &self,
