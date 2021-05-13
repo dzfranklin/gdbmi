@@ -829,7 +829,7 @@ mod tests {
     #[cfg(feature = "test_rd")]
     #[tokio::test]
     async fn test_rd_builders() -> Result {
-        let trace = record_hello_world();
+        let trace = test_common::record_hello_world();
         let timeout = Duration::from_secs(0);
 
         GdbBuilder::rd(&trace).spawn()?;
