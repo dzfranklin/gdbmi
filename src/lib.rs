@@ -398,7 +398,7 @@ impl Gdb {
     /// Note that if Python support has not been compiled into GDB, this command
     /// will still succeed (and do nothing).
     pub async fn enable_filter_frames(&self) -> Result<(), Error> {
-        self.raw_cmd("-enable-filter-frames")
+        self.raw_cmd("-enable-frame-filters")
             .await?
             .expect_result()?
             .expect_msg_is("done")
