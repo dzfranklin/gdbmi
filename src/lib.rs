@@ -141,9 +141,9 @@ impl GdbBuilder {
         }
     }
 
-    /// Replay a recording using the [time-travelling debugger rr][rr-home]
+    /// Replay a recording using the time-travelling debugger [rr][rr-home]
     ///
-    /// [rr_home]: https://rr-project.org/
+    /// [rr-home]: https://rr-project.org/
     pub fn rr(trace_dir: impl Into<Utf8PathBuf>) -> Self {
         Self {
             is_rust: true,
@@ -156,7 +156,7 @@ impl GdbBuilder {
     /// Replay a recording using [rd][rd-home], the Rust port of the
     /// time-travelling debugger rr.
     ///
-    /// At the time this was written (May 2021) had released the first alpha
+    /// At the time this was written (May 2021) rd had released the first alpha
     /// version.
     ///
     /// [rd-home]: https://github.com/sidkshatriya/rd
