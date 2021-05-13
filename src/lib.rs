@@ -293,6 +293,10 @@ impl Gdb {
         Self::worker_receive(out_rx, timeout).await
     }
 
+    /// Run the target from the start.
+    ///
+    /// Under rr this merely resets the program counter to the start, you need
+    /// to also call [`Self::exec_continue`] to actally start running.
     pub async fn exec_run(&self) -> Result<(), Error> {
         self.raw_cmd("-exec-run")
             .await?
